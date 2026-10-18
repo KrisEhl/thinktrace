@@ -5,12 +5,14 @@ const GRAVITY = 900 * K;
 const DEBRIS = Math.max(1, Math.round(K * 0.75)); // debris particle size in world pixels
 
 export const WEAPONS = [
-  { name: 'BLASTER', rate: 9, speed: 520 * K, radius: 4 * K, spread: 0.02, pellets: 1, color: '#ffe066' },
+  { name: 'HANDGUN', rate: 9, speed: 520 * K, radius: 4 * K, spread: 0.02, pellets: 1, color: '#ffe066' },
   { name: 'SHOTGUN', rate: 1.8, speed: 480 * K, radius: 3.5 * K, spread: 0.22, pellets: 7, color: '#ffb347' },
-  { name: 'MINIGUN', rate: 22, speed: 600 * K, radius: 2.5 * K, spread: 0.08, pellets: 1, color: '#9ef0ff' },
-  { name: 'ROCKET', rate: 1.4, speed: 280 * K, radius: 16 * K, spread: 0, pellets: 1, color: '#ff6b6b', rocket: true },
+  { name: 'UZI', rate: 22, speed: 600 * K, radius: 2.5 * K, spread: 0.08, pellets: 1, color: '#9ef0ff' },
+  { name: 'BAZOOKA', rate: 1.4, speed: 280 * K, radius: 16 * K, spread: 0, pellets: 1, color: '#ff6b6b', rocket: true },
 ];
 
+// A pink worm. Text is the world: every line is a one-way platform you can run
+// through, land on from above, and drop through with S.
 export class Player {
   constructor(x, y) {
     this.x = x;
@@ -28,6 +30,7 @@ export class Player {
     this.runPhase = 0;
     this.jumpHeld = false;
     this.aim = 0;
+    this.safe = { x, y }; // last spot with ground underfoot, for respawning after a splash
   }
 
   get cx() {
@@ -35,7 +38,12 @@ export class Player {
   }
 
   get gunY() {
-    return this.y + 6 * K;
+    return this.y + 9 * K;
+  }
+
+  // Solid text directly under the feet? The water line does not count.
+  footing(world, y) {
+    return world.rowSolid(this.x, this.x + this.w - 1, y, false);
   }
 
   update(dt, input, world) {
@@ -49,7 +57,7 @@ export class Player {
     }
     this.vx = Math.max(-max, Math.min(max, this.vx));
 
-    // Jump, double jump (with flip), then hold to fly.
+    // Jump, double jump (with flip), then hold to fly the jet pack.
     if (input.jump && !this.jumpHeld) {
       if (this.grounded) {
         this.vy = -290 * K;
@@ -72,10 +80,10 @@ export class Player {
     this.dropTimer = Math.max(0, this.dropTimer - dt);
     if (this.flip > 0) this.flip = Math.max(0, this.flip - dt * 2.6);
 
-    // Horizontal: text is one-way platforms, so walls never block. Step up small bumps.
+    // Horizontal: text never blocks sideways. Step up small bumps while walking.
     this.x = Math.max(0, Math.min(world.w - this.w, this.x + this.vx * dt));
     if (this.grounded) {
-      for (let k = 0; k < 4 * K && world.rowSolid(this.x, this.x + this.w - 1, Math.floor(this.y) + this.h - 1); k++) this.y -= 1;
+      for (let k = 0; k < 4 * K && this.footing(world, Math.floor(this.y) + this.h - 1); k++) this.y -= 1;
     }
 
     // Vertical: land on the first solid row below the feet while falling.
@@ -85,7 +93,7 @@ export class Player {
     let ny = this.y + this.vy * dt;
     if (this.vy > 0 && this.dropTimer <= 0) {
       for (let yy = Math.floor(this.y); yy < Math.floor(ny); yy++) {
-        if (world.rowSolid(this.x, this.x + this.w - 1, yy + this.h)) {
+        if (this.footing(world, yy + this.h)) {
           ny = yy;
           this.vy = 0;
           break;
@@ -94,63 +102,77 @@ export class Player {
     }
     this.y = ny;
 
-    this.grounded =
-      this.vy >= 0 && this.dropTimer <= 0 && world.rowSolid(this.x, this.x + this.w - 1, Math.floor(this.y) + this.h);
+    this.grounded = this.vy >= 0 && this.dropTimer <= 0 && this.footing(world, Math.floor(this.y) + this.h);
     if (this.grounded) {
       this.vy = 0;
       this.jumps = 0;
       this.fuel = Math.min(1, this.fuel + dt * 1.5);
       this.y = Math.floor(this.y);
+      this.safe = { x: this.x, y: this.y };
     } else if (this.jumps === 0) {
       this.jumps = 1; // walked off a ledge: one air jump left
     }
-    this.runPhase += (Math.abs(this.vx) / K) * dt * 0.12;
+    if (this.grounded && this.vx) this.runPhase += (Math.abs(this.vx) / K) * dt * 0.12;
   }
 
   draw(ctx, cam, t) {
     const x = Math.round(this.cx - cam.x);
     const y = Math.round(this.y - cam.y);
+    const f = this.face;
     ctx.save();
     ctx.translate(x, y + this.h / 2);
-    if (this.flip > 0) ctx.rotate(this.face * (1 - this.flip) * Math.PI * 2);
+    if (this.flip > 0) ctx.rotate(f * (1 - this.flip) * Math.PI * 2);
     ctx.translate(0, -this.h / 2);
-    ctx.scale(K, K); // figure is drawn in 7x16 units
-    ctx.strokeStyle = '#fff';
-    ctx.fillStyle = '#fff';
-    ctx.lineWidth = 1;
-    // head
-    ctx.beginPath();
-    ctx.arc(0, 2.5, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-    // body
-    ctx.fillRect(-0.5, 5, 1, 6);
-    // legs
-    const moving = this.grounded && Math.abs(this.vx) > 10;
-    const s = moving ? Math.sin(this.runPhase * Math.PI) * 3 : this.grounded ? 1.5 : 2.5;
-    ctx.beginPath();
-    ctx.moveTo(0, 11);
-    ctx.lineTo(-s, 16);
-    ctx.moveTo(0, 11);
-    ctx.lineTo(s, 16);
-    ctx.stroke();
-    // arm + gun toward the cursor
-    const ax = Math.cos(this.aim);
-    const ay = Math.sin(this.aim);
-    ctx.beginPath();
-    ctx.moveTo(0, 6);
-    ctx.lineTo(ax * 5, 6 + ay * 5);
-    ctx.stroke();
-    ctx.strokeStyle = '#9aa3b8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(ax * 4, 6 + ay * 4);
-    ctx.lineTo(ax * 8, 6 + ay * 8);
-    ctx.stroke();
-    // jetpack flame
+    ctx.scale(K, K); // drawn in a 7x16 box
+    const bob = this.grounded && this.vx ? Math.abs(Math.sin(this.runPhase * Math.PI)) * 0.8 : 0;
+    ctx.translate(0, -bob);
+    // jet pack flame
     if (this.flying) {
       ctx.fillStyle = (t * 20) % 2 < 1 ? '#ffb347' : '#ff6b6b';
-      ctx.fillRect(-this.face * 2 - 1, 12, 2, 3 + ((t * 30) % 3));
+      ctx.fillRect(-f * 3 - 1, 11, 2, 3 + ((t * 30) % 3));
     }
+    // body: a capsule with a lighter belly
+    ctx.fillStyle = '#f49ab0';
+    ctx.strokeStyle = '#8f3f5a';
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.roundRect(-3.2, 1.5, 6.4, 14.5 + bob, 3.2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fbc6d3';
+    ctx.fillRect(f > 0 ? 0.6 : -2.4, 8, 1.8, 7);
+    // headband with tails flying behind
+    ctx.fillStyle = '#e63946';
+    ctx.fillRect(-3.2, 3, 6.4, 1.2);
+    ctx.fillRect(-f * 3.2 - (f > 0 ? 2 : 0), 3.2, 2, 0.8);
+    ctx.fillRect(-f * 4.6 - (f > 0 ? 1.4 : 0), 4, 1.4, 0.8);
+    // eyes looking at the cursor
+    const ex = Math.cos(this.aim) * 0.5;
+    const ey = Math.sin(this.aim) * 0.5;
+    for (const ox of [0.2, 2.2]) {
+      const cx = f * ox;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, 6.2, 1.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(cx + ex, 6.2 + ey, 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // bazooka along the aim
+    const ax = Math.cos(this.aim);
+    const ay = Math.sin(this.aim);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#3d4a25';
+    ctx.lineWidth = 2.6;
+    ctx.beginPath();
+    ctx.moveTo(-ax * 2, 9 - ay * 2);
+    ctx.lineTo(ax * 7, 9 + ay * 7);
+    ctx.stroke();
+    ctx.strokeStyle = '#6b7f3e';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
     ctx.restore();
   }
 }
@@ -168,6 +190,10 @@ export class Grenade {
 
   update(dt, world) {
     this.fuse -= dt;
+    if (this.y >= world.floorY) {
+      this.sunk = true; // fizzles in the water
+      return;
+    }
     this.vy += GRAVITY * dt;
     const nx = this.x + this.vx * dt;
     const ny = this.y + this.vy * dt;
@@ -207,6 +233,7 @@ export class Particles {
       if (p.gravity) p.vy += GRAVITY * 0.8 * dt;
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      if (p.gravity && p.y >= world.floorY) p.life = 0; // sinks
       // Debris settles on terrain and bounces a little.
       if (p.gravity && p.vy > 0 && world.isSolid(p.x, p.y + 1)) {
         p.vy *= -0.25;

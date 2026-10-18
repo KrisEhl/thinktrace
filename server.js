@@ -18,6 +18,7 @@ const { runResearch } = await import('./agent/research.js');
 const { challengeClaim } = await import('./agent/factcheck.js');
 const { runDemoResearch, demoChallenge, DEMO_QUESTION } = await import('./agent/demo.js');
 const { toMarkdown } = await import('./agent/export.js');
+const leaderboard = await import('./agent/leaderboard.js');
 
 const PUBLIC = fileURLToPath(new URL('./public/', import.meta.url));
 const MIME = {
@@ -89,6 +90,10 @@ async function handleResearch(req, res, url) {
     claims: [],
     trace: [],
     startedAt: Date.now(),
+    // Who gets the points for this run's refuted claims. Demo replays never score.
+    player: !demo && leaderboard.validPlayerId(url.searchParams.get('player'))
+      ? { id: url.searchParams.get('player'), name: leaderboard.cleanName(url.searchParams.get('name')) }
+      : null,
   };
   runs.set(run.id, run);
   const emit = tracer(run, stream);
@@ -122,6 +127,8 @@ async function handleChallenge(req, res, url) {
   }
   try {
     await (run.mode === 'demo' ? demoChallenge : challengeClaim)(run, claim, emit, stream.signal);
+    const scored = leaderboard.award(run.player, claim.status, { claim: claim.text, question: run.question });
+    if (scored) emit('points', { claimId: claim.id, ...scored });
   } catch (err) {
     claim.status = 'standing';
     if (!stream.signal.aborted) {
@@ -170,6 +177,10 @@ const server = http.createServer(async (req, res) => {
       const cfg = getConfig();
       res.writeHead(200, { 'content-type': 'application/json' }).end(
         JSON.stringify({ live: cfg.live, model: cfg.model, checkerModel: cfg.checkerModel, demoQuestion: DEMO_QUESTION }),
+      );
+    } else if (pathname === '/api/leaderboard') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(
+        JSON.stringify(leaderboard.standings(url.searchParams.get('player'))),
       );
     } else if (pathname === '/api/research') {
       await handleResearch(req, res, url);

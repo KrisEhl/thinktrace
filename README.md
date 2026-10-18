@@ -5,13 +5,17 @@
 Search Shooter is a deep research agent that you play. It runs on **Nebius Token Factory** for reasoning and uses **Tavily** for live web search and page extraction.
 
 1. You ask a question. The agent **plans** sub-questions, then runs a tool loop in which it decides on its own when to **search**, which pages to **read** in full, and when it has **enough evidence**.
-2. Every step falls into the game as a **destructible pixel level laid out as a graph**: question → plan → searches fanning out side by side → each page read hanging under the search that found it → decision → answer → claims. Every node is solid text that a stick figure can stand on, run across and shoot to pieces. Hover a claim to light up citation lines back to the sources it cites. Each fact-check appears as a new node under the claim it attacked.
+2. Every step falls into the game as a **destructible pixel level laid out as a graph**: question → plan → searches fanning out side by side → each page read hanging under the search that found it → decision → answer → claims. The text itself is the world: every line is a one-way platform your worm can run through, land on and drop through, under a Worms-style sky with water below. Fall in the water and you respawn on the last text you stood on. Hover a claim to light up citation lines back to the sources it cites. Each fact-check appears as a new node under the claim it attacked.
 3. The cited draft lands last. Each claim is a block of text with its source ids and the **verbatim quote** that supports it.
 4. **Shoot a claim apart** and an **adversarial fact-checker** goes after it. It picks the angle most likely to break the claim, runs a fresh Tavily search and rules on it:
    - **UPHELD**: the block turns to gold steel and can no longer be destroyed.
    - **WEAKENED**: the block shatters and is replaced by the corrected claim.
    - **REFUTED**: the block shatters.
 5. Press **R** for the verified report. Every citation links to its source, and every quote has a *jump to quote* link (a [text fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments)) that scrolls the source page to the exact sentence. You can export the run, including the full decision trace, as Markdown or JSON.
+
+## Global leaderboard
+
+Every claim the fact-checker **refutes** after you shoot it apart earns **+100 points**. Pick a name on the start screen and open the leaderboard with the 🏆 button, the in-game LEADERBOARD button, or **L**. Points are awarded on the server from the verdict, so they can't be faked from the browser. Each claim can only score once, and offline demo replays don't score. Scores are stored in `data/leaderboard.json` (set `LEADERBOARD_FILE` to move it), so everyone playing on the same server shares one leaderboard. `npm run mock` writes to `data/leaderboard.mock.json` instead.
 
 ## Why the citations hold up
 
@@ -66,12 +70,12 @@ npm run mock:dev    # same, restarting on file changes
 | Input | Action |
 | --- | --- |
 | `A` / `D` | run |
-| `W` / `Space` | jump; press again in the air to flip, hold to fly with the jetpack |
+| `W` / `Space` | jump; press again in the air to flip, hold for the jet pack |
 | `S` | drop through text |
 | Mouse / click | aim / shoot |
 | Right-click | grenade |
-| `1`-`4` / wheel | blaster, shotgun, minigun, rocket |
-| `T` / `R` / `N` / `Esc` | trace / report / new search / pause |
+| `1`-`4` / wheel | handgun, shotgun, uzi, bazooka |
+| `T` / `R` / `L` / `N` / `Esc` | trace / report / leaderboard / new search / pause |
 
 ## How it's built
 
@@ -89,7 +93,7 @@ public/js/main.js    game loop, physics, weapons, camera, SSE wiring
 public/js/ui.js      HUD, trace panel, report
 ```
 
-Every card is drawn into a scratch canvas and copied into the world. Strong pixels become solid terrain, and faint anti-aliased edges are kept for display only. Each pixel records which card or claim it belongs to. Explosions carve circles out of the mask and turn the removed pixels into debris. Once a claim loses about 22% of its pixels, the fact-checker is triggered.
+Every node is drawn into a scratch canvas and copied into the world. Strong pixels become solid terrain, and faint anti-aliased edges are kept for display only. Text works as one-way platforms: you pass through it sideways and from below, land on it from above, and drop through with S. Each pixel records which card or claim it belongs to. Explosions carve circles out of the mask, scorch a ring around the hole, and turn the removed pixels into debris. Once a claim loses about 22% of its pixels, the fact-checker is triggered.
 
 API:
 
@@ -97,3 +101,4 @@ API:
 - `GET /api/challenge?run=…&claim=C3`: SSE stream of the fact-check
 - `GET /api/run/:id`: JSON with the answer, claims, sources and trace
 - `GET /api/run/:id.md`: the same as Markdown
+- `GET /api/leaderboard?player=…`: top 20 plus your own rank

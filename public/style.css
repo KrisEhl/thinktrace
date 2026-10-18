@@ -582,3 +582,123 @@ h1 {
 #report {
   place-items: start center;
 }
+
+/* Player name + leaderboard */
+.player-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.player-row label {
+  font-family: var(--pixel);
+  font-size: 9px;
+  color: var(--dim);
+}
+
+.player-row input {
+  font-family: var(--mono);
+  font-size: 20px;
+  width: 220px;
+  padding: 5px 10px;
+  color: #fff;
+  background: #0b0d13;
+  border: 2px solid var(--line);
+  outline: none;
+}
+
+.player-row input:focus {
+  border-color: var(--accent);
+}
+
+.player-row button {
+  font-size: 9px;
+  padding: 9px 12px;
+}
+
+.scoring {
+  color: var(--dim);
+  font-size: 17px;
+  margin: 8px 0 0;
+}
+
+#points-hud {
+  font-size: 11px;
+  color: var(--refuted);
+  margin-top: 8px;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.leaderboard-panel {
+  width: min(720px, 100%);
+}
+
+.leaderboard-panel h2 {
+  font-family: var(--pixel);
+  font-size: 18px;
+  color: #ffd23f;
+  margin: 0 32px 6px 0;
+}
+
+.board {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+  font-size: 21px;
+}
+
+.board th {
+  font-family: var(--pixel);
+  font-size: 8px;
+  color: var(--dim);
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.board td {
+  padding: 6px 8px;
+  border-bottom: 1px dashed #1f2433;
+  vertical-align: top;
+}
+
+.board .rank {
+  font-family: var(--pixel);
+  font-size: 11px;
+  width: 56px;
+}
+
+.board .rank .medal {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.board .pts {
+  font-family: var(--pixel);
+  font-size: 11px;
+  color: #ffd23f;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.board .last {
+  color: var(--dim);
+  font-size: 17px;
+}
+
+.board tr.you td {
+  background: #ff8fb118;
+}
+
+.board tr.you .name::after {
+  content: ' (you)';
+  color: #ff8fb1;
+}
+
+.board .gap td {
+  text-align: center;
+  color: var(--dim);
+  border: 0;
+}

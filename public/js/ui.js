@@ -134,6 +134,29 @@ export function trace(type, d) {
   if (stick) list.scrollTop = list.scrollHeight;
 }
 
+export function setPoints(total) {
+  $('points-hud').textContent = total ? `${total} PTS` : '';
+}
+
+const MEDAL = ['🥇', '🥈', '🥉'];
+
+export function renderLeaderboard(data, { demo } = {}) {
+  const row = (p) => `<tr class="${p.you ? 'you' : ''}">
+      <td class="rank">${MEDAL[p.rank - 1] ? `<span class="medal">${MEDAL[p.rank - 1]}</span>` : `#${p.rank}`}</td>
+      <td><span class="name">${esc(p.name)}</span>${p.lastTakedown ? `<div class="last">last takedown: “${esc(p.lastTakedown)}”</div>` : ''}</td>
+      <td class="pts">${p.refuted}</td>
+      <td class="pts">${p.points}</td>
+    </tr>`;
+  const youOutside = data.you && !data.top.some((p) => p.you);
+  $('leaderboard-body').innerHTML = `
+    <h2>🏆 LEADERBOARD</h2>
+    <div class="report-meta">+${data.pointsPerRefute} points for every claim the fact-checker refutes after you shoot it apart. ${data.players} player${data.players === 1 ? '' : 's'} so far.${demo ? '<br/>Offline demo runs are practice and do not score.' : ''}</div>
+    ${data.top.length ? `<table class="board">
+      <thead><tr><th>RANK</th><th>PLAYER</th><th class="pts">REFUTED</th><th class="pts">POINTS</th></tr></thead>
+      <tbody>${data.top.map(row).join('')}${youOutside ? `<tr class="gap"><td colspan="4">…</td></tr>${row(data.you)}` : ''}</tbody>
+    </table>` : '<p>No points yet. Be the first to break a claim.</p>'}`;
+}
+
 const VERDICT_COLOR = { upheld: 'var(--upheld)', weakened: 'var(--weakened)', refuted: 'var(--refuted)' };
 
 export function renderReport(run) {

@@ -20,7 +20,8 @@ export class World {
     this.decor = [];
     this.totalSolid = 0;
     this.destroyed = 0;
-    this.floorY = height; // moving "loading floor" below the newest content
+    this.floorY = height; // water line below the newest content
+    this.burn = 2; // width of the scorched ring around blast holes
   }
 
   addRegion(kind, rect, data = {}) {
@@ -37,9 +38,10 @@ export class World {
     return this.solid[y * this.w + x] === 1;
   }
 
-  rowSolid(x0, x1, y) {
+  // `water`: whether the water line counts as solid (it does for projectiles, not for the player).
+  rowSolid(x0, x1, y, water = true) {
     y |= 0;
-    if (y >= this.floorY) return true;
+    if (water && y >= this.floorY) return true;
     if (y < 0 || y >= this.h) return false;
     const base = y * this.w;
     for (let x = Math.max(0, x0 | 0); x <= Math.min(this.w - 1, x1 | 0); x++) if (this.solid[base + x]) return true;
@@ -86,12 +88,13 @@ export class World {
     this.totalSolid += count;
   }
 
-  // Remove a circle of terrain. Returns per-region hit counts.
+  // Remove a circle of terrain and scorch a ring around it. Returns per-region hit counts.
   carve(cx, cy, r, onPixel) {
-    const x0 = Math.max(0, Math.floor(cx - r));
-    const y0 = Math.max(0, Math.floor(cy - r));
-    const x1 = Math.min(this.w - 1, Math.ceil(cx + r));
-    const y1 = Math.min(this.h - 1, Math.ceil(cy + r));
+    const rb = r + this.burn;
+    const x0 = Math.max(0, Math.floor(cx - rb));
+    const y0 = Math.max(0, Math.floor(cy - rb));
+    const x1 = Math.min(this.w - 1, Math.ceil(cx + rb));
+    const y1 = Math.min(this.h - 1, Math.ceil(cy + rb));
     const hits = new Map();
     if (x1 < x0 || y1 < y0) return hits;
     const bw = x1 - x0 + 1;
@@ -99,16 +102,25 @@ export class World {
     const img = this.ctx.getImageData(x0, y0, bw, bh);
     const d = img.data;
     const r2 = r * r;
+    const rb2 = rb * rb;
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         const dx = x - cx;
         const dy = y - cy;
-        if (dx * dx + dy * dy > r2) continue;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 > rb2) continue;
         const k = y * this.w + x;
         const p = ((y - y0) * bw + (x - x0)) * 4;
         if (!d[p + 3]) continue;
         const reg = this.regions[this.region[k]];
         if (reg?.locked) continue;
+        if (dist2 > r2) {
+          // Scorched edge: blend toward burnt earth (repeated hits converge, never go black).
+          d[p] = d[p] * 0.55 + 40 * 0.45;
+          d[p + 1] = d[p + 1] * 0.55 + 24 * 0.45;
+          d[p + 2] = d[p + 2] * 0.55 + 18 * 0.45;
+          continue;
+        }
         d[p + 3] = 0;
         if (!this.solid[k]) continue; // soft edge pixel: just erase it
         onPixel?.(x, y, d[p], d[p + 1], d[p + 2]);

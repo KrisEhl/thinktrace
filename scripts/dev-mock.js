@@ -12,6 +12,8 @@ Object.assign(process.env, {
   NEBIUS_CHECKER_MODEL: 'mock/fake-llm',
   TAVILY_API_KEY: 'mock',
   TAVILY_BASE_URL: `http://localhost:${port}`,
+  // Keep fake points out of the real leaderboard.
+  LEADERBOARD_FILE: process.env.LEADERBOARD_FILE ?? new URL('../data/leaderboard.mock.json', import.meta.url).pathname,
 });
 console.log(`Mock Token Factory + Tavily on http://localhost:${port} (no real API calls)`);
 

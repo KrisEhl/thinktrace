@@ -37,6 +37,39 @@ const fontsReady = Promise.all([
   document.fonts.load(FONTS.body),
 ]);
 
+// ---------- player identity (for the global leaderboard) ----------
+const player = (() => {
+  let id = localStorage.getItem('ss.player');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('ss.player', id);
+  }
+  return { id, name: localStorage.getItem('ss.name') ?? '' };
+})();
+const $name = document.getElementById('player-name');
+$name.value = player.name;
+$name.addEventListener('input', () => {
+  player.name = $name.value.trim().slice(0, 20);
+  localStorage.setItem('ss.name', player.name);
+});
+
+async function fetchStandings() {
+  return fetch(`/api/leaderboard?player=${encodeURIComponent(player.id)}`).then((r) => r.json());
+}
+fetchStandings().then((d) => (document.getElementById('points-per-refute').textContent = d.pointsPerRefute)).catch(() => {});
+
+async function openLeaderboard() {
+  const overlay = document.getElementById('leaderboard');
+  overlay.hidden = false;
+  if (game) paused = true;
+  document.getElementById('leaderboard-body').innerHTML = '<h2>🏆 LEADERBOARD</h2><p>Loading…</p>';
+  try {
+    ui.renderLeaderboard(await fetchStandings(), { demo });
+  } catch {
+    document.getElementById('leaderboard-body').innerHTML = '<h2>🏆 LEADERBOARD</h2><p>Could not load the leaderboard.</p>';
+  }
+}
+
 // ---------- start screen ----------
 const $q = document.getElementById('question');
 const params = new URLSearchParams(location.search);
@@ -102,6 +135,7 @@ function start(question) {
     projectiles: [],
     grenades: [],
     particles: new Particles(),
+    fx: [], // explosion flashes and comic words
     weapon: 0,
     cooldown: 0,
     grenadeCooldown: 0,
@@ -118,12 +152,18 @@ function start(question) {
     t: 0,
   };
   connectResearch(question);
+  fetchStandings()
+    .then((d) => {
+      game.points = Math.max(game.points ?? 0, d.you?.points ?? 0);
+      ui.setPoints(game.points);
+    })
+    .catch(() => {});
   last = performance.now();
   requestAnimationFrame(frame);
 }
 
 // ---------- server events ----------
-const EVENTS = ['run', 'status', 'plan', 'thinking', 'thought', 'search', 'results', 'read', 'page', 'read_failed', 'tool_error', 'decision', 'claim', 'report', 'challenge', 'attack', 'attack_results', 'verdict', 'done', 'fail'];
+const EVENTS = ['run', 'status', 'plan', 'thinking', 'thought', 'search', 'results', 'read', 'page', 'read_failed', 'tool_error', 'decision', 'claim', 'report', 'challenge', 'attack', 'attack_results', 'verdict', 'points', 'done', 'fail'];
 
 function listen(url, onEvent) {
   const es = new EventSource(url);
@@ -146,7 +186,8 @@ function listen(url, onEvent) {
 }
 
 function connectResearch(question) {
-  const url = `/api/research?q=${encodeURIComponent(question)}${forceDemo ? '&demo=1' : ''}`;
+  const who = `&player=${encodeURIComponent(player.id)}&name=${encodeURIComponent(player.name)}`;
+  const url = `/api/research?q=${encodeURIComponent(question)}${forceDemo ? '&demo=1' : ''}${who}`;
   listen(url, (type, d) => {
     ui.trace(type, d);
     onResearchEvent(type, d);
@@ -304,6 +345,12 @@ function challenge(entry) {
       addCheckNode(entry, d);
     }
     if (type === 'verdict') applyVerdict(entry, d);
+    if (type === 'points') {
+      // Parallel fact-checks can report out of order; totals only ever grow.
+      game.points = Math.max(game.points ?? 0, d.total);
+      ui.setPoints(game.points);
+      setTimeout(() => ui.toast(`+${d.awarded} POINTS<br/>${d.total} total on the leaderboard`, '#ffd23f'), 600);
+    }
     if (type === 'fail') {
       claim.status = 'standing';
       entry.region.locked = false;
@@ -355,6 +402,13 @@ function applyVerdict(entry, v) {
 }
 
 // ---------- combat ----------
+const WORDS = ['BOOM!', 'POW!', 'BIFF!', 'WHAM!', 'KABOOM!'];
+
+function splash(x, y, n = 18) {
+  for (let i = 0; i < n; i++) {
+    game.particles.add(x + (Math.random() - 0.5) * 6 * K, y, (Math.random() - 0.5) * 90 * K, -(60 + Math.random() * 140) * K, Math.random() < 0.5 ? '#9fd8ff' : '#e8f6ff', 0.8 + Math.random() * 0.5, Math.round(1.5 * K));
+  }
+}
 function explode(x, y, radius) {
   const { world, particles } = game;
   const hits = world.carve(x, y, radius, (px, py, r, g, b) => {
@@ -365,6 +419,11 @@ function explode(x, y, radius) {
     }
   });
   particles.burst(x, y, Math.min(40, 4 + radius * 2), ['#ffffff', '#ffe066', '#ff9f43'], 40 + radius * 8, 0.25);
+  game.fx.push({ x, y, r: radius, t: 0, word: radius >= 10 * K ? WORDS[Math.floor(Math.random() * WORDS.length)] : null });
+  for (let i = 0; i < Math.min(12, radius / K); i++) {
+    // smoke puffs drifting up
+    particles.add(x + (Math.random() - 0.5) * radius, y + (Math.random() - 0.5) * radius, (Math.random() - 0.5) * 20 * K, -(10 + Math.random() * 25) * K, Math.random() < 0.5 ? '#6b6478' : '#4d4757', 1 + Math.random(), Math.round(3 * K), false);
+  }
   game.cam.shake = Math.max(game.cam.shake, radius * 0.35);
   for (const region of hits.keys()) {
     if (region.kind !== 'claim') continue;
@@ -375,7 +434,7 @@ function explode(x, y, radius) {
   const dx = p.cx - x;
   const dy = p.y + 8 - y;
   const d = Math.hypot(dx, dy);
-  if (radius > 10 && d < radius * 2.2) {
+  if (radius > 10 * K && d < radius * 2.2) {
     p.vx += (dx / (d || 1)) * 220 * K;
     p.vy += ((dy / (d || 1)) * 260 - 80) * K;
   }
@@ -420,22 +479,30 @@ function update(dt) {
     for (let i = 0; i < steps && p.life > 0; i++) {
       p.x += (p.vx * dt) / steps;
       p.y += (p.vy * dt) / steps;
-      if (world.isSolid(p.x, p.y)) {
+      if (p.y >= world.floorY) {
+        splash(p.x, world.floorY, 8);
+        p.life = 0;
+      } else if (world.isSolid(p.x, p.y)) {
         explode(p.x, p.y, p.weapon.radius);
         p.life = 0;
       }
     }
     p.life -= dt;
-    if (p.weapon.rocket && Math.random() < 0.8) particles.add(p.x, p.y, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, Math.random() < 0.5 ? '#ffb347' : '#8a90a6', 0.4, 1, false);
+    if (p.weapon.rocket && Math.random() < 0.8) particles.add(p.x, p.y, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, Math.random() < 0.3 ? '#ffb347' : '#8d8799', 0.5, Math.round(2 * K), false);
     if (p.x < -50 || p.x > world.w + 50 || p.y < game.cam.y - 400 || p.y > world.floorY + 50) p.life = 0;
   }
   game.projectiles = game.projectiles.filter((p) => p.life > 0);
 
   for (const g of game.grenades) {
     g.update(dt, world);
-    if (g.fuse <= 0) explode(g.x, g.y, g.radius);
+    if (g.sunk) {
+      splash(g.x, world.floorY, 10);
+      g.fuse = 0;
+    } else if (g.fuse <= 0) explode(g.x, g.y, g.radius);
   }
   game.grenades = game.grenades.filter((g) => g.fuse > 0);
+  for (const f of game.fx) f.t += dt;
+  game.fx = game.fx.filter((f) => f.t < 0.9);
   particles.update(dt, world);
 
   // Camera: follow the player, peek toward the cursor.
@@ -449,13 +516,182 @@ function update(dt) {
   cam.y = Math.max(-80, Math.min(world.floorY + 50 - vh, cam.y));
   cam.shake *= Math.pow(0.002, dt);
 
-  if (player.y > world.floorY + 200) {
-    player.y = world.floorY - 40;
-    player.vy = 0;
+  // Into the water: splash, then back to the last solid ground.
+  if (player.y + player.h * 0.6 > world.floorY) {
+    splash(player.cx, world.floorY, 30);
+    const safe = player.safe.y < world.floorY - player.h ? player.safe : { x: world.w / 2, y: -40 * K };
+    Object.assign(player, { x: safe.x, y: safe.y - 4 * K, vx: 0, vy: 0 });
+    ui.toast('SPLASH!<br/>Back to dry land', '#6ec6ff');
   }
 }
 
 // ---------- rendering ----------
+const SKY = (() => {
+  const r = (n) => {
+    const x = Math.sin(n * 12.9898) * 43758.5453;
+    return x - Math.floor(x);
+  };
+  return {
+    stars: Array.from({ length: 140 }, (_, i) => ({ x: r(i), y: r(i + 500), s: r(i + 900) < 0.15 ? 2 : 1, tw: r(i + 1300) * 6 })),
+    clouds: Array.from({ length: 7 }, (_, i) => ({ x: r(i + 2000), y: 0.08 + r(i + 2100) * 0.4, w: 40 + r(i + 2200) * 70, speed: 3 + r(i + 2300) * 6 })),
+  };
+})();
+
+// Worms-style backdrop: dusk gradient, twinkling stars, drifting clouds, parallax hills.
+function drawSky(sx, sy) {
+  const g = ctx.createLinearGradient(0, 0, 0, vh);
+  g.addColorStop(0, '#0e1230');
+  g.addColorStop(0.55, '#2a2a5c');
+  g.addColorStop(1, '#5a3d6e');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, vw, vh);
+  for (const st of SKY.stars) {
+    ctx.globalAlpha = 0.4 + 0.4 * Math.sin(game.t * 1.5 + st.tw);
+    ctx.fillStyle = '#ffffff';
+    const x = (((st.x * vw * 1.5 - sx * 0.05) % vw) + vw) % vw;
+    ctx.fillRect(Math.round(x), Math.round(st.y * vh * 0.7), st.s * K * 0.5 + 0.5, st.s * K * 0.5 + 0.5);
+  }
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#d8d0ff';
+  for (const c of SKY.clouds) {
+    const w = c.w * K;
+    const span = vw + w * 2;
+    const x = ((((c.x * span + game.t * c.speed * K - sx * 0.15) % span) + span) % span) - w;
+    const y = c.y * vh;
+    for (let k = 0; k < 4; k++) ctx.fillRect(Math.round(x + k * w * 0.18), Math.round(y - k * 3 * K * (k % 2)), Math.round(w * (1 - k * 0.18)), Math.round(8 * K));
+  }
+  ctx.globalAlpha = 1;
+  hills(sx * 0.12, vh * 0.72, 46 * K, '#231f47', 1);
+  hills(sx * 0.25, vh * 0.82, 34 * K, '#1a1636', 2);
+}
+
+function hills(offset, base, amp, color, seed) {
+  ctx.fillStyle = color;
+  const step = Math.max(2, Math.round(2 * K));
+  for (let x = 0; x < vw; x += step) {
+    const u = (x + offset) / (60 * K);
+    const h = Math.sin(u + seed) * 0.6 + Math.sin(u * 2.3 + seed * 3) * 0.3 + Math.sin(u * 5.1) * 0.1;
+    const top = Math.round(base - amp * (0.5 + h / 2));
+    ctx.fillRect(x, top, step, vh - top);
+  }
+}
+
+// Animated water at the bottom of the level, with the agent's status written on it.
+function drawWater(fy, sx) {
+  if (fy > vh + 10) return;
+  const t = game.t;
+  const layers = [
+    ['#1d3f78', 0, 1.4],
+    ['#2a5aa0', 4 * K, 1],
+    ['#3a78c2', 9 * K, 0.7],
+  ];
+  for (const [color, dy, speed] of layers) {
+    ctx.fillStyle = color;
+    const step = Math.max(2, Math.round(2 * K));
+    for (let x = 0; x < vw; x += step) {
+      const wave = Math.sin((x + sx) / (14 * K) + t * 2 * speed) * 2.5 * K + Math.sin((x + sx) / (5 * K) - t * 3 * speed) * K;
+      const top = Math.round(fy + dy + wave);
+      ctx.fillRect(x, top, step, vh - top + 4);
+    }
+  }
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = '#cfeaff';
+  for (let x = ((-sx * 1.2 + t * 20 * K) % (24 * K)) - 24 * K; x < vw; x += 24 * K) {
+    ctx.fillRect(Math.round(x), Math.round(fy + 2 * K + Math.sin(x * 0.1 + t * 3) * 2 * K), Math.round(6 * K), Math.max(1, Math.round(K / 2)));
+  }
+  ctx.globalAlpha = 1;
+  ctx.font = FONTS.head;
+  ctx.textBaseline = 'top';
+  const label = game.busy ? `~ ${game.status} ~` : '~ END OF RESULTS ~';
+  const tw = ctx.measureText(label).width;
+  outlined(label, Math.max(4, playWidth() / 2 - tw / 2), fy - 16 * K, game.busy ? "#ffe066" : "#cfe3ff");
+}
+
+function outlined(text, x, y, color, maxW) {
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(2, Math.round(2.5 * K));
+  ctx.strokeStyle = '#120c1e';
+  ctx.strokeText(text, x, y, maxW);
+  ctx.fillStyle = color;
+  ctx.fillText(text, x, y, maxW);
+}
+
+function nameTag(text, cx, y, color) {
+  ctx.font = `${Math.round(6 * K)}px "Press Start 2P"`;
+  ctx.textBaseline = 'bottom';
+  const tw = ctx.measureText(text).width;
+  outlined(text, Math.round(cx - tw / 2), Math.round(y), color);
+  ctx.textBaseline = 'top';
+}
+
+// Missiles with smoke, Worms-style grenades with a fuse countdown, and bullets.
+function drawProjectiles(sx, sy) {
+  for (const p of game.projectiles) {
+    const x = p.x - sx;
+    const y = p.y - sy;
+    if (p.weapon.rocket) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(Math.atan2(p.vy, p.vx));
+      ctx.scale(K, K);
+      ctx.fillStyle = '#c9ccd6';
+      ctx.fillRect(-5, -1.5, 7, 3);
+      ctx.fillStyle = '#e63946';
+      ctx.fillRect(2, -1.5, 2, 3);
+      ctx.fillRect(-6, -2.5, 2, 5);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = p.weapon.color;
+      ctx.fillRect(Math.round(x - K / 2), Math.round(y - K / 2), Math.max(2, Math.round(1.5 * K)), Math.max(2, Math.round(1.5 * K)));
+    }
+  }
+  for (const g of game.grenades) {
+    const x = g.x - sx;
+    const y = g.y - sy;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(K, K);
+    ctx.fillStyle = '#3f7a36';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 2.6, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#26491f';
+    ctx.fillRect(-2.6, -0.4, 5.2, 0.8);
+    ctx.fillStyle = '#9aa0ab';
+    ctx.fillRect(-1, -4.2, 2, 1.4);
+    ctx.restore();
+    nameTag(String(Math.max(1, Math.ceil(g.fuse))), x, y - 6 * K, g.fuse < 0.6 ? '#ff4d6d' : '#ffffff');
+  }
+}
+
+// Explosion flash rings and comic words.
+function drawFx(sx, sy) {
+  for (const f of game.fx) {
+    const x = f.x - sx;
+    const y = f.y - sy;
+    if (f.t < 0.25) {
+      const k = f.t / 0.25;
+      ctx.globalAlpha = 1 - k;
+      ctx.fillStyle = k < 0.3 ? '#ffffff' : k < 0.6 ? '#ffe066' : '#ff9f43';
+      ctx.beginPath();
+      ctx.arc(x, y, f.r * (0.7 + k * 0.9), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    if (f.word) {
+      const pop = Math.min(1, f.t / 0.12);
+      const size = Math.round(10 * K * (0.6 + 0.6 * pop));
+      ctx.font = `${size}px "Press Start 2P"`;
+      ctx.textBaseline = 'middle';
+      ctx.globalAlpha = f.t > 0.6 ? 1 - (f.t - 0.6) / 0.3 : 1;
+      const tw = ctx.measureText(f.word).width;
+      outlined(f.word, x - tw / 2, y - f.r - 8 * K - f.t * 20 * K, '#ffd23f');
+      ctx.globalAlpha = 1;
+      ctx.textBaseline = 'top';
+    }
+  }
+}
+
 // Flow edges are elbow connectors from a parent's bottom to a child's top;
 // citation edges are dashed curves from a claim up to the sources it cites.
 function drawEdges(layout, sx, sy, now, hover, lit) {
@@ -484,12 +720,17 @@ function drawEdges(layout, sx, sy, now, hover, lit) {
       ctx.setLineDash([]);
     } else {
       const my = Math.round(by - Math.min((by - ay) / 2, layout.gap / 2)) + 0.5;
-      ctx.globalAlpha = 0.6 * grow;
+      ctx.globalAlpha = 0.85 * grow;
       ctx.beginPath();
       ctx.moveTo(ax, ay);
       ctx.lineTo(ax, my);
       ctx.lineTo(bx, my);
       ctx.lineTo(bx, by - 3 * K);
+      ctx.lineWidth = Math.max(2, 2 * K);
+      ctx.strokeStyle = '#120c1e';
+      ctx.stroke();
+      ctx.lineWidth = Math.max(1, K);
+      ctx.strokeStyle = e.color;
       ctx.stroke();
       // arrowhead
       ctx.fillStyle = e.color;
@@ -509,16 +750,7 @@ function render() {
   const sy = Math.round(cam.y + (Math.random() - 0.5) * cam.shake);
   const view = { x: sx, y: sy };
 
-  ctx.fillStyle = '#0a0c12';
-  ctx.fillRect(0, 0, vw, vh);
-  // the "page"
-  ctx.fillStyle = '#0f121b';
-  ctx.fillRect(-sx, -sy - 200, world.w, world.floorY + 200);
-  ctx.fillStyle = '#151a27';
-  const gx = ((-sx % 16) + 16) % 16;
-  const gy = ((-sy % 16) + 16) % 16;
-  for (let x = gx; x < vw; x += 16) ctx.fillRect(x, 0, 1, vh);
-  for (let y = gy; y < vh; y += 16) ctx.fillRect(0, y, vw, 1);
+  drawSky(sx, sy);
 
   const now = performance.now();
   // Hovering a claim lights up its citation lines and the source nodes they reach.
@@ -542,17 +774,16 @@ function render() {
     const fresh = Math.max(0, 1 - (now - born) / 700);
     const entry = region.kind === 'claim' || region.kind === 'verdict' ? game.claims.get(region.data.claimId) : null;
     const checking = entry?.claim.status === 'checking';
-    // Opaque card so connector lines pass behind nodes instead of through the text.
-    ctx.fillStyle = '#121620';
+    // Translucent backing panel so the text reads against the sky; lines pass faintly behind it.
+    ctx.fillStyle = checking ? 'rgba(60, 14, 30, 0.72)' : 'rgba(12, 10, 32, 0.72)';
     ctx.fillRect(x, y, r.w, r.h);
-    ctx.fillStyle = checking ? '#ff6b6b14' : '#ffffff08';
-    ctx.fillRect(x, y, r.w, r.h);
-    ctx.globalAlpha = checking ? 0.6 + 0.4 * Math.sin(game.t * 10) : lit.has(region) ? 1 : 0.35 + fresh * 0.65;
+    ctx.globalAlpha = checking ? 0.6 + 0.4 * Math.sin(game.t * 10) : lit.has(region) ? 1 : 0.4 + fresh * 0.6;
     ctx.strokeStyle = checking ? '#ff6b6b' : accent;
+    ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, r.w - 1, r.h - 1);
     ctx.globalAlpha = 1;
     ctx.fillStyle = checking ? '#ff6b6b' : accent;
-    ctx.fillRect(x, y, 2, r.h);
+    ctx.fillRect(x, y, Math.max(2, K), r.h);
     if (region.kind === 'claim' && entry?.claim.status === 'standing' && region.alive < region.total) {
       // integrity bar: empties toward the break point
       const hp = Math.max(0, (region.alive / region.total - CLAIM_BREAK) / (1 - CLAIM_BREAK));
@@ -562,9 +793,11 @@ function render() {
       ctx.fillRect(x + r.w - 54, y + 4, Math.ceil(48 * hp), 4);
     }
     if (region.locked && entry?.claim.status === 'upheld') {
-      ctx.globalAlpha = 0.15 + 0.1 * Math.sin(game.t * 3);
-      ctx.fillStyle = COLORS.upheld;
-      ctx.fillRect(x, y, r.w, r.h);
+      // a glint sweeping across the steel
+      const gx = x + ((game.t * 120 * K) % (r.w + 80 * K)) - 40 * K;
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(Math.max(x, gx), y, Math.max(0, Math.min(8 * K, x + r.w - gx)), r.h);
       ctx.globalAlpha = 1;
     }
   }
@@ -590,30 +823,12 @@ function render() {
     ctx.fillText(text, r.x + r.w - w - sx, r.y - 5 - sy, w - 8);
   }
 
-  // loading floor under the newest content
-  const fy = world.floorY - sy;
-  if (fy < vh + 10) {
-    ctx.fillStyle = '#07080c';
-    ctx.fillRect(-sx, fy, world.w, vh - fy + 20);
-    ctx.fillStyle = game.busy ? COLORS.search : '#3a4058';
-    for (let x = -sx; x < world.w - sx; x += 8) ctx.fillRect(x + ((game.busy ? game.t * 30 : 0) % 8), fy, 4, 2);
-    ctx.fillStyle = game.busy ? COLORS.search : COLORS.dim;
-    const label = game.busy ? `▼ ${game.status}` : '▲ END OF RESULTS';
-    const tw = ctx.measureText(label).width;
-    ctx.fillText(label, Math.max(4, playWidth() / 2 - tw / 2), fy + 10 * K, vw - 8);
-  }
-
-  for (const g of game.grenades) {
-    ctx.fillStyle = g.fuse < 0.5 && Math.floor(game.t * 16) % 2 ? '#ff4d6d' : '#9ef07c';
-    ctx.fillRect(Math.round(g.x - sx) - 1, Math.round(g.y - sy) - 1, 3, 3);
-  }
-  for (const p of game.projectiles) {
-    ctx.fillStyle = p.weapon.color;
-    const sz = p.weapon.rocket ? 3 : 2;
-    ctx.fillRect(Math.round(p.x - sx) - 1, Math.round(p.y - sy) - 1, sz, sz);
-  }
+  drawProjectiles(sx, sy);
+  drawWater(world.floorY - sy, sx);
   game.particles.draw(ctx, view);
   game.player.draw(ctx, view, game.t);
+  nameTag('YOU', game.player.cx - sx, game.player.y - sy - 6 * K, '#ff8fb1');
+  drawFx(sx, sy);
 
   // crosshair
   const mx = Math.round(input.mx / SCALE);
@@ -673,6 +888,7 @@ function openReport() {
 
 function closeOverlays() {
   document.getElementById('report').hidden = true;
+  document.getElementById('leaderboard').hidden = true;
   document.getElementById('pause').hidden = true;
   paused = false;
 }
@@ -693,6 +909,10 @@ addEventListener('keydown', (e) => {
   if (/^Digit[1-4]$/.test(e.code)) game.weapon = Number(e.code.slice(5)) - 1;
   if (e.code === 'KeyT') ui.toggleTrace();
   if (e.code === 'KeyN') newSearch();
+  if (e.code === 'KeyL') {
+    if (document.getElementById('leaderboard').hidden) openLeaderboard();
+    else closeOverlays();
+  }
   if (e.code === 'KeyR') {
     if (document.getElementById('report').hidden) openReport();
     else closeOverlays();
@@ -720,6 +940,12 @@ canvas.addEventListener('wheel', (e) => {
 });
 
 document.getElementById('btn-new').onclick = newSearch;
+document.getElementById('btn-leaderboard').onclick = openLeaderboard;
+document.getElementById('btn-leaderboard-start').onclick = openLeaderboard;
+document.querySelector('[data-close="leaderboard"]').onclick = () => {
+  if (game) closeOverlays();
+  else document.getElementById('leaderboard').hidden = true;
+};
 document.getElementById('btn-trace').onclick = () => ui.toggleTrace();
 document.getElementById('report').addEventListener('click', (e) => {
   if (e.target.dataset?.action === 'new') newSearch();
