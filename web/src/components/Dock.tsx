@@ -1,0 +1,288 @@
+import { useEffect, useRef, useState } from "react";
+import { transport } from "../api";
+import type { Source } from "../api/types";
+import { useStore, type DockTab } from "../state/store";
+import {
+  answerSentencesCiting,
+  children,
+  claimNumber,
+  claimsOfNode,
+  claimsOfSource,
+  claimTone,
+  claimUsage,
+  decisionsOfNode,
+  nodeConfidence,
+  nodeTone,
+  originGroups,
+  sourceUsage,
+  toneLabel,
+} from "../state/selectors";
+
+const TABS: [DockTab, string][] = [
+  ["node", "Node"],
+  ["answer", "Answer"],
+  ["source", "Source"],
+  ["ledger", "Ledger"],
+];
+
+export function Dock() {
+  const tab = useStore((s) => s.ui.dockTab);
+  const { set } = useStore.getState();
+  return (
+    <div className="dock">
+      <div className="tabs">
+        {TABS.map(([k, label]) => (
+          <button key={k} className={tab === k ? "on" : ""} onClick={() => set({ dockTab: k })}>
+            {label}
+          </button>
+        ))}
+      </div>
+      <div className="dock-body">
+        {tab === "node" && <NodePanel />}
+        {tab === "answer" && <AnswerPanel />}
+        {tab === "source" && <SourceViewer />}
+        {tab === "ledger" && <Ledger />}
+      </div>
+    </div>
+  );
+}
+
+function Cite({ id }: { id: string }) {
+  const openClaim = useStore((s) => s.openClaim);
+  return (
+    <button className="cite" onClick={() => openClaim(id)} title="Open claim, quote and source">
+      [c{claimNumber(id)}]
+    </button>
+  );
+}
+
+/* ---------- Node ---------- */
+
+function NodePanel() {
+  const run = useStore((s) => s.run);
+  const { selectedId, focusId } = useStore((s) => s.ui);
+  const { steer, drill, select } = useStore.getState();
+  const id = selectedId ?? focusId;
+  const n = run.nodes[id];
+  if (!n) return <p className="muted pad">Nothing selected yet. Click a node.</p>;
+
+  const tone = nodeTone(run, id);
+  const conf = nodeConfidence(run, id);
+  const claims = claimsOfNode(run, id);
+  const decisions = decisionsOfNode(run, id);
+  const kids = children(run, id);
+  const dead = n.status === "deactivated";
+
+  const fix = () => {
+    const text = window.prompt("Fix a wrong assumption. What should the agent take as given?", "");
+    if (text) void steer("fix", { node_id: id, text });
+  };
+
+  return (
+    <div className="pad">
+      <h3>{n.label}</h3>
+      <div className="row">
+        <span className={`chip tone-${tone}`}>{toneLabel[tone]}</span>
+        {conf !== undefined && <span className="chip">confidence {conf.toFixed(2)}</span>}
+        {n.verdict && <span className="chip">verdict: {n.verdict}</span>}
+        <span className="chip">{n.status}</span>
+      </div>
+      {run.needs_human[id] && <div className="callout">⚠ Needs you: {run.needs_human[id]}</div>}
+      {run.stop_reasons[id] && <p className="muted">Stopped: {run.stop_reasons[id]}</p>}
+
+      {n.kind !== "question" && (
+        <div className="actions">
+          <button onClick={() => void steer("deactivate", { node_id: id })} disabled={dead}>Deactivate</button>
+          <button onClick={() => void steer("dig_deeper", { node_id: id })} disabled={dead}>Dig deeper</button>
+          <button onClick={fix}>Fix…</button>
+          <button onClick={() => void steer("accept", { node_id: id })}>Accept</button>
+          {n.kind !== "direction" || focusId !== id ? <button className="primary" onClick={() => drill(id)}>Zoom in ⤢</button> : null}
+        </div>
+      )}
+      {n.kind === "direction" && decisions.length + claims.length === 0 && <p className="muted">The agent has not started here yet.</p>}
+
+      {kids.length > 0 && (
+        <>
+          <h4>Contains</h4>
+          {kids.map((k) => (
+            <div key={k.id} className="item clickable" onClick={() => select(k.id)}>
+              <span className={`dot ${nodeTone(run, k.id)}`} /> {k.label}
+              <span className="muted"> · {toneLabel[nodeTone(run, k.id)]}</span>
+            </div>
+          ))}
+        </>
+      )}
+
+      {claims.length > 0 && <h4>Claims ({claims.length})</h4>}
+      {claims.map((c) => {
+        const u = claimUsage(run, c);
+        const src = run.sources[c.source_id];
+        return (
+          <div key={c.id} className={`item claimcard tone-${claimTone(c)}`}>
+            <div>
+              <Cite id={c.id} /> {c.text}
+            </div>
+            <blockquote>“{c.quote}”</blockquote>
+            <div className="muted">
+              {c.verified === false ? "quote not found in source" : c.verified ? "quote verified" : "checking…"} · {c.origin_ids.length} independent origin{c.origin_ids.length === 1 ? "" : "s"} · {src?.domain}
+            </div>
+            <div className={`use use-${u.state}`}>{u.state === "used" ? "● used in answer" : u.state === "pending" ? "○ answer pending" : `○ not used: ${u.reason}`}</div>
+          </div>
+        );
+      })}
+
+      {decisions.length > 0 && <h4>Decisions ({decisions.length})</h4>}
+      {decisions.map((d) => (
+        <div key={d.id} className="item">
+          <b>{d.action}</b> {d.query && <>“{d.query}”</>}
+          <div className="muted">because {d.why}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ---------- Answer ---------- */
+
+function AnswerPanel() {
+  const run = useStore((s) => s.run);
+  if (run.answer.length === 0) return <p className="muted pad">{run.status === "idle" ? "Run a question first." : "The answer is written after the research stops."}</p>;
+  const unused = Object.values(run.claims).filter((c) => claimUsage(run, c).state === "unused");
+  return (
+    <div className="pad">
+      <h3>Answer</h3>
+      <p className="muted">Every sentence cites claim ids. Click one to see the quote and the source.</p>
+      {run.answer.map((s, i) => (
+        <p key={i} className={s.claim_ids.length === 0 ? "gap" : ""}>
+          {s.text} {s.claim_ids.map((c) => <Cite key={c} id={c} />)}
+        </p>
+      ))}
+      {unused.length > 0 && (
+        <>
+          <h4>Collected but not used ({unused.length})</h4>
+          {unused.map((c) => (
+            <div key={c.id} className="item">
+              <Cite id={c.id} /> {c.text}
+              <div className="muted">{claimUsage(run, c).reason}</div>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Source ---------- */
+
+function SourceViewer() {
+  const run = useStore((s) => s.run);
+  const target = useStore((s) => s.ui.source);
+  const { openClaim, openSource } = useStore.getState();
+  const [fetched, setFetched] = useState<Source | null>(null);
+  const markRef = useRef<HTMLElement | null>(null);
+
+  const local = target ? run.sources[target.source_id] : undefined;
+  useEffect(() => {
+    setFetched(null);
+    if (target && !local) transport.getSource(target.source_id).then(setFetched).catch(() => undefined);
+  }, [target?.source_id, local]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const src = local ?? fetched;
+  useEffect(() => {
+    markRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [target?.claim_id, src?.id]);
+
+  if (!target || !src) return <p className="muted pad">Click a citation or a source node to read the source with the quote highlighted.</p>;
+
+  const claims = claimsOfSource(run, src.id);
+  const spans = claims
+    .filter((c) => c.span)
+    .map((c) => ({ c, s: c.span as [number, number] }))
+    .sort((a, b) => a.s[0] - b.s[0]);
+
+  const parts: React.ReactNode[] = [];
+  let at = 0;
+  spans.forEach(({ c, s }) => {
+    if (s[0] < at) return;
+    parts.push(src.text.slice(at, s[0]));
+    const active = c.id === target.claim_id;
+    parts.push(
+      <mark key={c.id} ref={active ? (el) => { markRef.current = el; } : undefined} className={active ? "active" : ""} onClick={() => openSource(src.id, c.id)}>
+        {src.text.slice(s[0], s[1])}
+        <sup>c{claimNumber(c.id)}</sup>
+      </mark>,
+    );
+    at = s[1];
+  });
+  parts.push(src.text.slice(at));
+
+  const sameOrigin = (originGroups(run)[src.origin_id] ?? []).filter((s) => s.id !== src.id);
+  const usage = sourceUsage(run, src);
+
+  return (
+    <div className="pad">
+      <h3>{src.title}</h3>
+      <div className="muted">
+        <a href={src.url} target="_blank" rel="noreferrer">{src.domain}</a> · origin <code>{src.origin_id}</code>
+        {sameOrigin.length > 0 && <> · counts as one with {sameOrigin.map((s) => s.domain).join(", ")} (echo)</>}
+      </div>
+      <div className={`use use-${usage.state}`}>{usage.state === "used" ? `● ${usage.used} claim(s) from here are used in the answer` : usage.state === "pending" ? "○ answer pending" : "○ nothing from this source is used in the answer"}</div>
+      <div className="srctext">{parts}</div>
+      {claims.length > 0 && <h4>Claims quoted from this source</h4>}
+      {claims.map((c) => {
+        const cited = answerSentencesCiting(run, c.id);
+        return (
+          <div key={c.id} className="item clickable" onClick={() => openClaim(c.id)}>
+            <Cite id={c.id} /> {c.text}
+            <div className="muted">
+              {c.verified === false ? "quote not found in this text" : c.span ? `chars ${c.span[0]}–${c.span[1]}` : "checking…"}
+              {cited.length > 0 ? ` · cited in answer sentence${cited.length > 1 ? "s" : ""} ${cited.map((x) => x.i + 1).join(", ")}` : ""}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- Ledger ---------- */
+
+function Ledger() {
+  const run = useStore((s) => s.run);
+  const { openSource, openClaim } = useStore.getState();
+  const groups = originGroups(run);
+  const entries = Object.entries(groups);
+  if (entries.length === 0) return <p className="muted pad">No sources yet.</p>;
+  const claims = Object.values(run.claims);
+  const used = claims.filter((c) => claimUsage(run, c).state === "used").length;
+  return (
+    <div className="pad">
+      <h3>Evidence ledger</h3>
+      <p className="muted">
+        {Object.keys(run.sources).length} sources · {entries.length} independent origins · {claims.length} claims · {used} used in the answer
+      </p>
+      {entries.map(([origin, srcs]) => (
+        <div key={origin} className="item">
+          <div>
+            <code>{origin}</code> <span className="muted">{srcs.length > 1 ? `${srcs.length} sources collapse to one origin` : ""}</span>
+          </div>
+          {srcs.map((s) => {
+            const u = sourceUsage(run, s);
+            return (
+              <div key={s.id} className="clickable" onClick={() => openSource(s.id)}>
+                <span className={`use use-${u.state}`}>{u.state === "used" ? "●" : "○"}</span> {s.domain} <span className="muted">· {s.title}</span>
+                <div className="chips">
+                  {u.claims.map((c) => (
+                    <button key={c.id} className={`cite ${claimUsage(run, c).state}`} onClick={(e) => { e.stopPropagation(); openClaim(c.id); }}>
+                      [c{claimNumber(c.id)}]
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}

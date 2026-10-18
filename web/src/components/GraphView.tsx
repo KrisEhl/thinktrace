@@ -1,0 +1,130 @@
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { Background, Controls, ReactFlow, ReactFlowProvider, useReactFlow, type Node } from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { useStore } from "../state/store";
+import { layoutLayer } from "../graph/layout";
+import { nodeTypes } from "./nodes";
+
+const ZOOM_IN_AT = 1.9; // zooming past this with a node selected drills into it
+const ZOOM_OUT_AT = 0.35;
+
+function Inner() {
+  const run = useStore((s) => s.run);
+  const { focusId, follow } = useStore((s) => s.ui);
+  const { select, drill, up, set } = useStore.getState();
+  const rf = useReactFlow();
+  const programmatic = useRef(false);
+
+  const { nodes, edges } = useMemo(() => layoutLayer(run, focusId), [run, focusId]);
+
+  // Fit when the layer changes, and while the graph grows (until the user pans or zooms by hand).
+  const sig = nodes.length + ":" + focusId;
+  useEffect(() => {
+    if (!follow || !nodes.length) return;
+    programmatic.current = true;
+    const t = setTimeout(() => {
+      const activity = useStore.getState().run.nodes[focusId]?.kind === "direction";
+      rf.fitView({ padding: activity ? 0.1 : 0.3, duration: 450, maxZoom: activity ? 1.2 : 1.1 });
+      setTimeout(() => (programmatic.current = false), 600);
+    }, 60);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sig, follow]);
+
+  const onMoveStart = useCallback(
+    (ev: unknown) => {
+      if (ev && !programmatic.current) set({ follow: false });
+    },
+    [set],
+  );
+
+  // Semantic zoom: zoom into the selected node to open its layer; zoom far out to go back up.
+  const onMoveEnd = useCallback(
+    (_e: unknown, vp: { zoom: number }) => {
+      if (programmatic.current) return;
+      const st = useStore.getState();
+      const sel = st.ui.selectedId && st.run.nodes[st.ui.selectedId];
+      if (vp.zoom > ZOOM_IN_AT && sel && sel.id !== st.ui.focusId && sel.kind !== "question") drill(sel.id);
+      else if (vp.zoom < ZOOM_OUT_AT && st.run.nodes[st.ui.focusId]?.parent_id) up();
+    },
+    [drill, up],
+  );
+
+  const onNodeClick = useCallback((_: unknown, n: Node) => {
+      if (n.type === "gb") select(n.id); // decision / source / claim cards handle their own clicks
+    },
+    [select],);
+  const onNodeDoubleClick = useCallback(
+    (_: unknown, n: Node) => {
+      if (n.type !== "gb") return;
+      const kind = useStore.getState().run.nodes[n.id]?.kind;
+      if (kind && kind !== "question") drill(n.id);
+    },
+    [drill],
+  );
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      nodeTypes={nodeTypes}
+      onNodeClick={onNodeClick}
+      onNodeDoubleClick={onNodeDoubleClick}
+      onPaneClick={() => select(null)}
+      onMoveStart={onMoveStart}
+      onMoveEnd={onMoveEnd}
+      zoomOnDoubleClick={false}
+      minZoom={0.15}
+      maxZoom={3}
+      nodesConnectable={false}
+      proOptions={{ hideAttribution: true }}
+      colorMode="dark"
+    >
+      <Background gap={28} />
+      <Controls showInteractive={false} />
+    </ReactFlow>
+  );
+}
+
+export function GraphView() {
+  const run = useStore((s) => s.run);
+  const { focusId, follow } = useStore((s) => s.ui);
+  const { up, set, drill } = useStore.getState();
+
+  // breadcrumb: root > ... > focus
+  const crumbs: string[] = [];
+  for (let id: string | null | undefined = focusId; id; id = run.nodes[id]?.parent_id) crumbs.unshift(id);
+
+  const layerName = run.nodes[focusId]?.kind === "direction" ? "Layer 3 · what the agent is doing" : run.nodes[focusId]?.kind === "dimension" ? "Layer 2 · sub-questions" : "Layer 1 · dimensions";
+
+  return (
+    <div className="graph">
+      {Object.keys(run.nodes).length === 0 ? (
+        <div className="empty">
+          <h2>Ask a question to grow the graph</h2>
+          <p>The question breaks into dimensions, then sub-questions. Zoom into any node to see what the agent is doing there.</p>
+        </div>
+      ) : (
+        <ReactFlowProvider>
+          <Inner />
+        </ReactFlowProvider>
+      )}
+      <div className="crumbs">
+        <span className="layer">{layerName}</span>
+        {crumbs.map((id, i) => (
+          <span key={id}>
+            {i > 0 && " › "}
+            <button onClick={() => drill(id)} disabled={id === focusId}>
+              {run.nodes[id]?.label ?? id}
+            </button>
+          </span>
+        ))}
+        {run.nodes[focusId]?.parent_id && <button className="ghost" onClick={up}>↑ up</button>}
+        {!follow && <button className="ghost" onClick={() => set({ follow: true })}>⤢ refit</button>}
+      </div>
+      <div className="legend">
+        <i className="dot green" /> ≥0.75 <i className="dot orange" /> 0.5–0.75 <i className="dot red" /> &lt;0.5 <i className="dot grey" /> unverified <i className="dot off" /> off
+      </div>
+    </div>
+  );
+}
