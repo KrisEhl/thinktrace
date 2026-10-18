@@ -84,13 +84,14 @@ function playWidth() {
 function start(question) {
   document.getElementById('hud').hidden = false;
   ui.toggleTrace(innerWidth > 900);
-  const W = Math.round(Math.max(480 * K, Math.min(playWidth(), 1100 * K)));
-  const world = new World(W, Math.round(Math.max(9000, 6000 * K)));
+  // Wide enough for six graph columns; the camera scrolls sideways when needed.
+  const W = Math.round(Math.max(playWidth(), 1600 * K));
+  const world = new World(W, Math.round(3600 * K));
   const layout = new Layout(world);
-  layout.place('hero', [
+  const hero = layout.centered('hero', [
     { text: 'QUESTION', font: 'head', color: COLORS.dim, after: 6 },
     { text: question, font: 'big', color: COLORS.hero },
-  ], { full: true, accent: '#ffffff' });
+  ], { accent: '#ffffff' });
   world.floorY = layout.bottom + 70 * K;
   game = {
     question,
@@ -104,8 +105,12 @@ function start(question) {
     weapon: 0,
     cooldown: 0,
     grenadeCooldown: 0,
-    claims: new Map(), // claimId -> { claim, region, note }
+    claims: new Map(), // claimId -> { claim, region, col, note }
     pendingReasons: new Map(),
+    nodes: { hero, plan: null, decision: null, answer: null },
+    searchNodes: new Map(), // searchId -> { region, col }
+    sourceSearch: new Map(), // sourceId -> searchId that first found it
+    pageNodes: new Map(), // sourceId -> page region
     status: 'Booting agent',
     busy: true,
     runId: null,
@@ -164,46 +169,54 @@ function onResearchEvent(type, d) {
       game.status = d.text;
       break;
     case 'plan':
-      layout.place('plan', [
+      game.nodes.plan = layout.centered('plan', [
         { text: 'PLAN', font: 'head', color: COLORS.plan, after: 6 },
         ...d.subquestions.map((q, i) => ({ text: `${i + 1}. ${q}` })),
         ...(d.strategy ? [{ space: 3 }, { text: `strategy: ${d.strategy}`, color: COLORS.dim, max: 3 }] : []),
-      ], { full: true, accent: COLORS.plan });
+      ], { accent: COLORS.plan, parents: [game.nodes.hero] });
       game.status = 'Plan ready, searching';
       break;
     case 'search':
       game.pendingReasons.set(d.searchId, d.reason);
       game.status = `Searching: ${d.query}`;
       break;
-    case 'results':
-      layout.place('search', [
+    case 'results': {
+      for (const r of d.results) if (!game.sourceSearch.has(r.id)) game.sourceSearch.set(r.id, d.searchId);
+      const col = layout.slot(game.searchNodes.size);
+      const region = layout.inColumn('search', [
         { text: `SEARCH #${d.searchId}`, font: 'head', color: COLORS.search, after: 5 },
         { text: `"${d.query}"`, color: '#ffffff', max: 2 },
-        { text: `why: ${game.pendingReasons.get(d.searchId) ?? ''}`, color: COLORS.dim, max: 2, after: 6 },
+        { text: `why: ${game.pendingReasons.get(d.searchId) ?? ''}`, color: COLORS.dim, max: 3, after: 6 },
         ...d.results.flatMap((r) => [
-          { text: `[${r.id}] ${r.title}`, color: COLORS.link, max: 2, after: 0 },
-          { text: r.domain, color: COLORS.dim, after: 0 },
-          { text: r.snippet, max: 2, after: 6 },
+          { text: `[${r.id}] ${r.title}`, color: COLORS.link, max: 1, after: 0 },
+          { text: r.domain, color: COLORS.dim, after: 4 },
         ]),
-      ], { accent: COLORS.search });
+      ], col, { accent: COLORS.search, parents: [game.nodes.plan ?? game.nodes.hero] });
+      if (region) game.searchNodes.set(d.searchId, { region, col });
       break;
+    }
     case 'read':
       game.status = `Reading ${d.ids.map((i) => `[${i}]`).join(' ')}`;
       break;
-    case 'page':
-      layout.place('page', [
+    case 'page': {
+      // Hang the page under the search that found it, chained below earlier reads.
+      const branch = game.searchNodes.get(game.sourceSearch.get(d.id)) ?? [...game.searchNodes.values()].at(-1);
+      const col = branch?.col ?? layout.slot(0);
+      const region = layout.inColumn('page', [
         { text: `READ [${d.id}]`, font: 'head', color: COLORS.read, after: 5 },
         { text: d.title, color: COLORS.link, max: 2, after: 0 },
         { text: d.domain, color: COLORS.dim, after: 5 },
-        { text: d.excerpt, max: 7 },
-      ], { accent: COLORS.read });
+        { text: d.excerpt, max: 5 },
+      ], col, { accent: COLORS.read, parents: [layout.colLast[col] ?? game.nodes.plan] });
+      if (region) game.pageNodes.set(d.id, region);
       break;
+    }
     case 'decision':
-      layout.place('decision', [
+      game.nodes.decision = layout.centered('decision', [
         { text: d.enough ? 'ENOUGH EVIDENCE' : 'OUT OF BUDGET', font: 'head', color: COLORS.decision, after: 6 },
         { text: d.reason, max: 4 },
         ...(d.gaps ? [{ text: `still uncertain: ${d.gaps}`, color: COLORS.dim, max: 3 }] : []),
-      ], { full: true, accent: COLORS.decision });
+      ], { accent: COLORS.decision, parents: layout.leaves.length ? layout.leaves : [game.nodes.plan] });
       break;
     case 'report':
       buildReport(d);
@@ -230,22 +243,48 @@ function claimRows(claim) {
   ];
 }
 
+// The node a citation should point at: the page if the agent read it, else the search that found it.
+function sourceNode(id) {
+  return game.pageNodes.get(id) ?? game.searchNodes.get(game.sourceSearch.get(id))?.region ?? null;
+}
+
 function buildReport(d) {
   const { layout } = game;
   game.report = d;
-  layout.place('answer', [
+  game.nodes.answer = layout.centered('answer', [
     { text: 'DRAFT ANSWER', font: 'head', color: '#ffffff', after: 6 },
     { text: d.title, font: 'head', color: COLORS.search, after: 6 },
     { text: d.answer, max: 6, after: 6 },
-    { text: 'Shoot a claim apart to send the fact-checker after it. Claims that survive turn to steel.', color: COLORS.dim },
-  ], { full: true, accent: '#ffffff' });
-  for (const claim of d.claims) {
-    const region = layout.place('claim', claimRows(claim), { accent: COLORS[claim.confidence], data: { claimId: claim.id } });
-    if (!region) continue;
-    game.claims.set(claim.id, { claim, region, note: '' });
-  }
+    { text: 'Shoot a claim apart to send the fact-checker after it. Claims that survive turn to steel. Hover a claim to see its sources.', color: COLORS.dim },
+  ], { accent: '#ffffff', parents: [game.nodes.decision ?? layout.leaves.at(-1) ?? game.nodes.plan] });
+  d.claims.forEach((claim, i) => {
+    const col = layout.slot(i);
+    const accent = COLORS[claim.confidence];
+    const region = layout.inColumn('claim', claimRows(claim), col, { accent, data: { claimId: claim.id }, parents: [game.nodes.answer] });
+    if (!region) return;
+    for (const id of new Set(claim.sources)) {
+      const node = sourceNode(id);
+      if (node) layout.link(node, region, accent, 'cite');
+    }
+    game.claims.set(claim.id, { claim, region, col, note: '' });
+  });
   document.getElementById('btn-report').disabled = false;
   ui.toast('THE DRAFT HAS LANDED<br/>Break the claims below', COLORS.search);
+}
+
+// A fact-check becomes its own node under the claim it attacks.
+function addCheckNode(entry, d) {
+  const region = game.layout.inColumn('check', [
+    { text: `FACT-CHECK ${entry.claim.id}`, font: 'head', color: '#ff6b6b', after: 5 },
+    ...(entry.angle ? [{ text: `angle: ${entry.angle}`, color: COLORS.dim, max: 3 }] : []),
+    { text: `"${d.query}"`, color: '#ffffff', max: 2, after: 5 },
+    ...d.results.map((r) => ({ text: `[${r.id}] ${r.title}`, color: COLORS.link, max: 1, after: 0 })),
+  ], entry.col, { accent: '#ff6b6b', parents: [entry.region] });
+  if (region) {
+    for (const r of d.results) if (!game.pageNodes.has(r.id) && !game.sourceSearch.has(r.id)) game.pageNodes.set(r.id, region);
+    entry.checkNode = region;
+  }
+  settleFloor();
 }
 
 function challenge(entry) {
@@ -256,8 +295,14 @@ function challenge(entry) {
   ui.toast(`${claim.id} CHALLENGED<br/>The fact-checker is hunting for counter-evidence`, '#ff6b6b');
   listen(`/api/challenge?run=${game.runId}&claim=${claim.id}`, (type, d) => {
     ui.trace(type, d);
-    if (type === 'attack') entry.note = `CHECKING: "${d.query}"`;
-    if (type === 'attack_results') entry.note = `READING ${d.results.length} RESULTS`;
+    if (type === 'attack') {
+      entry.note = `CHECKING: "${d.query}"`;
+      entry.angle = d.angle;
+    }
+    if (type === 'attack_results') {
+      entry.note = `READING ${d.results.length} RESULTS`;
+      addCheckNode(entry, d);
+    }
     if (type === 'verdict') applyVerdict(entry, d);
     if (type === 'fail') {
       claim.status = 'standing';
@@ -411,6 +456,53 @@ function update(dt) {
 }
 
 // ---------- rendering ----------
+// Flow edges are elbow connectors from a parent's bottom to a child's top;
+// citation edges are dashed curves from a claim up to the sources it cites.
+function drawEdges(layout, sx, sy, now, hover, lit) {
+  ctx.lineWidth = 1;
+  for (const e of layout.edges) {
+    const a = e.from.rect;
+    const b = e.to.rect;
+    if (Math.max(a.y + a.h, b.y + b.h) - sy < 0 || Math.min(a.y, b.y) - sy > vh) continue;
+    const grow = Math.min(1, (now - e.born) / 500);
+    const ax = Math.round(a.x + a.w / 2 - sx) + 0.5;
+    const ay = Math.round(a.y + a.h - sy);
+    const bx = Math.round(b.x + b.w / 2 - sx) + 0.5;
+    const by = Math.round(b.y - sy);
+    ctx.strokeStyle = e.color;
+    if (e.kind === 'cite') {
+      const on = hover && e.to === hover;
+      if (on) lit.add(e.from);
+      ctx.globalAlpha = (on ? 0.95 : 0.13) * grow;
+      ctx.setLineDash([4 * K, 3 * K]);
+      ctx.lineDashOffset = on ? -game.t * 30 * K : 0;
+      const bend = Math.min(140 * K, (by - ay) / 2);
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.bezierCurveTo(bx, by - bend, ax, ay + bend, ax, ay);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      const my = Math.round(by - Math.min((by - ay) / 2, layout.gap / 2)) + 0.5;
+      ctx.globalAlpha = 0.6 * grow;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax, my);
+      ctx.lineTo(bx, my);
+      ctx.lineTo(bx, by - 3 * K);
+      ctx.stroke();
+      // arrowhead
+      ctx.fillStyle = e.color;
+      ctx.beginPath();
+      ctx.moveTo(bx - 3 * K, by - 4 * K);
+      ctx.lineTo(bx + 3 * K, by - 4 * K);
+      ctx.lineTo(bx, by);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 function render() {
   const { world, cam } = game;
   const sx = Math.round(cam.x + (Math.random() - 0.5) * cam.shake);
@@ -428,8 +520,19 @@ function render() {
   for (let x = gx; x < vw; x += 16) ctx.fillRect(x, 0, 1, vh);
   for (let y = gy; y < vh; y += 16) ctx.fillRect(0, y, vw, 1);
 
-  // card frames (decor, not solid)
   const now = performance.now();
+  // Hovering a claim lights up its citation lines and the source nodes they reach.
+  const mxw = input.mx / SCALE + sx;
+  const myw = input.my / SCALE + sy;
+  let hover = null;
+  for (const e of game.claims.values()) {
+    const r = e.region.rect;
+    if (mxw >= r.x && mxw <= r.x + r.w && myw >= r.y && myw <= r.y + r.h) hover = e.region;
+  }
+  const lit = new Set();
+  drawEdges(game.layout, sx, sy, now, hover, lit);
+
+  // card frames (decor, not solid)
   for (const region of world.decor) {
     const r = region.rect;
     if (r.y - sy > vh || r.y + r.h - sy < 0) continue;
@@ -439,9 +542,12 @@ function render() {
     const fresh = Math.max(0, 1 - (now - born) / 700);
     const entry = region.kind === 'claim' || region.kind === 'verdict' ? game.claims.get(region.data.claimId) : null;
     const checking = entry?.claim.status === 'checking';
+    // Opaque card so connector lines pass behind nodes instead of through the text.
+    ctx.fillStyle = '#121620';
+    ctx.fillRect(x, y, r.w, r.h);
     ctx.fillStyle = checking ? '#ff6b6b14' : '#ffffff08';
     ctx.fillRect(x, y, r.w, r.h);
-    ctx.globalAlpha = checking ? 0.6 + 0.4 * Math.sin(game.t * 10) : 0.35 + fresh * 0.65;
+    ctx.globalAlpha = checking ? 0.6 + 0.4 * Math.sin(game.t * 10) : lit.has(region) ? 1 : 0.35 + fresh * 0.65;
     ctx.strokeStyle = checking ? '#ff6b6b' : accent;
     ctx.strokeRect(x + 0.5, y + 0.5, r.w - 1, r.h - 1);
     ctx.globalAlpha = 1;
@@ -494,7 +600,7 @@ function render() {
     ctx.fillStyle = game.busy ? COLORS.search : COLORS.dim;
     const label = game.busy ? `▼ ${game.status}` : '▲ END OF RESULTS';
     const tw = ctx.measureText(label).width;
-    ctx.fillText(label, Math.max(4, world.w / 2 - tw / 2 - sx), fy + 10, vw - 8);
+    ctx.fillText(label, Math.max(4, playWidth() / 2 - tw / 2), fy + 10 * K, vw - 8);
   }
 
   for (const g of game.grenades) {

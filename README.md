@@ -5,7 +5,7 @@
 Search Shooter is a deep research agent that you play. It runs on **Nebius Token Factory** for reasoning and uses **Tavily** for live web search and page extraction.
 
 1. You ask a question. The agent **plans** sub-questions, then runs a tool loop in which it decides on its own when to **search**, which pages to **read** in full, and when it has **enough evidence**.
-2. Every step falls into the game as a **destructible pixel level**. The plan, each search with its results, and each page read become solid text that a stick figure can stand on, run across and shoot to pieces.
+2. Every step falls into the game as a **destructible pixel level laid out as a graph**: question → plan → searches fanning out side by side → each page read hanging under the search that found it → decision → answer → claims. Every node is solid text that a stick figure can stand on, run across and shoot to pieces. Hover a claim to light up citation lines back to the sources it cites. Each fact-check appears as a new node under the claim it attacked.
 3. The cited draft lands last. Each claim is a block of text with its source ids and the **verbatim quote** that supports it.
 4. **Shoot a claim apart** and an **adversarial fact-checker** goes after it. It picks the angle most likely to break the claim, runs a fresh Tavily search and rules on it:
    - **UPHELD**: the block turns to gold steel and can no longer be destroyed.
@@ -34,6 +34,21 @@ npm start                 # open http://localhost:3000
 ```
 
 Without keys, the app starts in **offline demo mode**: a scripted replay built on real Wikipedia text (`agent/demo-sources.json`). Its quotes still go through the same verifier, and one of its claims is deliberately breakable. Add `?demo=1` to the URL to force demo mode even when keys are set.
+
+### Developing without API calls
+
+```bash
+npm run mock        # app on :3000 against a local fake Token Factory + Tavily on :4010
+npm run mock:dev    # same, restarting on file changes
+```
+
+`scripts/mock-server.js` speaks the same HTTP APIs as Token Factory and Tavily, so the real agent code runs unchanged: planner, tool loop with parallel tool calls, writer, quote verification, fact-checker and retries. Content is generated from your question. Page text contains the quoted sentences word for word, so citations verify. Different pages report slightly different numbers, so the fact-checker returns a mix of verdicts, and one claim per run uses a paraphrased quote so you can see the "quote not found" state. No keys are needed, and keys in `.env` are ignored.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `MOCK_LATENCY` | `700` | Simulated latency in ms (randomised ±50%) |
+| `MOCK_FAIL_RATE` | `0` | Share (0 to 1) of JSON replies cut off with `finish_reason: length`, to test retries |
+| `MOCK_PORT` | `4010` | Port of the mock APIs |
 
 ### Configuration
 
@@ -69,7 +84,7 @@ agent/llm.js         Token Factory client: tool calls, <think> stripping, robust
 agent/tavily.js      Tavily /search and /extract
 agent/demo.js        offline replay
 public/js/world.js   destructible pixel terrain (solid mask + region ownership per pixel)
-public/js/layout.js  agent events -> stamped text cards
+public/js/layout.js  graph layout: agent events -> stamped text nodes + connector/citation edges
 public/js/main.js    game loop, physics, weapons, camera, SSE wiring
 public/js/ui.js      HUD, trace panel, report
 ```
