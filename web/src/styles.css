@@ -134,3 +134,6 @@ mark.active { background: var(--note); color: #221a00; animation: hl 1.2s ease-o
 mark sup { font-size: 9px; margin-left: 2px; }
 @keyframes hl { 0% { box-shadow: 0 0 0 10px #f3e27a99; } 100% { box-shadow: 0 0 0 0 #f3e27a00; } }
 .chips { margin-top: 2px; }
+
+.composer select { width: 100%; margin-top: 6px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px; font: inherit; }
+.tabs button { font-size: 12px; padding: 7px 2px; }

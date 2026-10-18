@@ -18,7 +18,13 @@ import {
   toneLabel,
 } from "../state/selectors";
 
-const TABS: [DockTab, string][] = [
+const TABS: [DockTab, string][] = transport.simulate ? [
+  ["node", "Node"],
+  ["answer", "Answer"],
+  ["source", "Source"],
+  ["ledger", "Ledger"],
+  ["play", "Play"],
+] : [
   ["node", "Node"],
   ["answer", "Answer"],
   ["source", "Source"],
@@ -42,6 +48,7 @@ export function Dock() {
         {tab === "answer" && <AnswerPanel />}
         {tab === "source" && <SourceViewer />}
         {tab === "ledger" && <Ledger />}
+        {tab === "play" && <Playground />}
       </div>
     </div>
   );
@@ -283,6 +290,43 @@ function Ledger() {
           })}
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ---------- Playground (mock only) ---------- */
+
+function Playground() {
+  const run = useStore((s) => s.run);
+  const { selectedId } = useStore((s) => s.ui);
+  const { ask } = useStore.getState();
+  const sim = transport.simulate!;
+  const n = selectedId ? run.nodes[selectedId] : undefined;
+  const dir = n?.kind === "direction";
+  const target = n ? `“${n.label}”` : "the root question";
+  const prompts = ["Summarise the findings", "How sure are we?", "How many sources and origins?", "Look into something new about supplier insurance"];
+  return (
+    <div className="pad">
+      <h3>Playground</h3>
+      <p className="muted">Mock backend only. Select a node in the graph, then poke it. Everything here goes through the same event stream the real backend will use.</p>
+      <h4>On {target}</h4>
+      <div className="actions">
+        <button onClick={() => sim("add_branch", selectedId ?? "q")}>+ Branch</button>
+        <button disabled={!dir} onClick={() => sim("add_evidence", selectedId!)}>+ Evidence</button>
+        <button disabled={!dir} onClick={() => sim("contradict", selectedId!)}>Contradict</button>
+        <button disabled={!n} onClick={() => sim("mark_stale", selectedId!)}>Mark stale</button>
+        <button onClick={() => sim("needs_you", selectedId ?? "q")}>Needs you</button>
+      </div>
+      <p className="muted">+ Evidence and Contradict need a sub-question (a direction) selected.</p>
+      <h4>Run</h4>
+      <div className="actions">
+        <button onClick={() => sim("skip_to_end")}>Skip to end of run</button>
+      </div>
+      <h4>Chat prompts (pinned to {target})</h4>
+      {prompts.map((p) => (
+        <div key={p} className="item clickable" onClick={() => void ask(p)}>{p}</div>
+      ))}
+      <p className="muted">Or type anything in the chat box. It answers from the claims already in the graph, or opens a branch with an invented, traceable claim.</p>
     </div>
   );
 }

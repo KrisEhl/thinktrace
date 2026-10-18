@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { QUESTION } from "../mock/fixture";
-import { isMock } from "../api";
+import { isMock, transport } from "../api";
 import { useStore } from "../state/store";
 import { circled } from "./nodes";
 import { claimNumber, notes } from "../state/selectors";
@@ -9,7 +8,9 @@ export function Rail() {
   const run = useStore((s) => s.run);
   const selectedId = useStore((s) => s.ui.selectedId);
   const { start, ask, reveal, openClaim } = useStore.getState();
-  const [text, setText] = useState(isMock ? QUESTION : "");
+  const scenarios = transport.scenarios ?? [];
+  const [scenario, setScenario] = useState(scenarios[0]?.id ?? "");
+  const [text, setText] = useState(scenarios[0]?.question ?? "");
   const started = run.status !== "idle";
   const sel = selectedId ? run.nodes[selectedId] : null;
   const numberOf = Object.fromEntries(notes(run).map((x) => [x.user.id, x.n]));
@@ -17,7 +18,7 @@ export function Rail() {
   const submit = () => {
     const t = text.trim();
     if (!t) return;
-    if (!started) void start(t);
+    if (!started) void start(t, scenario);
     else void ask(t);
     if (started) setText("");
   };
@@ -62,6 +63,19 @@ export function Rail() {
             }
           }}
         />
+        {!started && scenarios.length > 0 && (
+          <select
+            value={scenario}
+            onChange={(e) => {
+              setScenario(e.target.value);
+              setText(scenarios.find((x) => x.id === e.target.value)?.question ?? "");
+            }}
+          >
+            {scenarios.map((x) => (
+              <option key={x.id} value={x.id}>{x.label}</option>
+            ))}
+          </select>
+        )}
         <div className="composer-row">
           <span className="muted">{isMock ? "mock backend" : "live backend"}</span>
           <button className="primary" onClick={submit}>

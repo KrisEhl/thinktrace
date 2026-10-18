@@ -3,7 +3,7 @@ import { transport } from "../api";
 import type { GlassboxEvent, SteerAction } from "../api/types";
 import { applyEvent, emptyRun, fromSnapshot, type RunState } from "./reducer";
 
-export type DockTab = "node" | "answer" | "source" | "ledger";
+export type DockTab = "node" | "answer" | "source" | "ledger" | "play";
 
 interface Ui {
   focusId: string; // graph layer: this node is the centre
@@ -21,7 +21,7 @@ interface Ui {
 }
 
 interface Actions {
-  start: (question: string) => Promise<void>;
+  start: (question: string, scenario?: string) => Promise<void>;
   hydrate: (run_id: string) => Promise<void>;
   steer: (action: SteerAction, opts?: { node_id?: string; text?: string }) => Promise<void>;
   ask: (text: string) => Promise<void>;
@@ -80,11 +80,11 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       ...saved,
     },
 
-    async start(question) {
+    async start(question, scenario) {
       unsub?.();
       set({ run: { ...emptyRun(), status: "running", question } });
       setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node" });
-      const { run_id } = await transport.createRun({ question });
+      const { run_id } = await transport.createRun({ question, scenario });
       attach(run_id);
     },
 
@@ -106,7 +106,9 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
     },
 
     select(id) {
-      setUi({ selectedId: id, ...(id ? { dockTab: "node" as const, dockOpen: true } : {}) });
+      // The Playground tab stays put while you pick nodes to poke.
+      const keep = get().ui.dockTab === "play";
+      setUi({ selectedId: id, ...(id && !keep ? { dockTab: "node" as const, dockOpen: true } : {}) });
     },
 
     drill(id) {

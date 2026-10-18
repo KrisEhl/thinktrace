@@ -121,7 +121,12 @@ export interface SteerRequest {
 export interface CreateRunRequest {
   question: string;
   context_text?: string;
+  /** Mock backend only: which canned scenario to play. Ignored by the real backend. */
+  scenario?: string;
 }
+
+/** Mock backend only: poke the graph to try out the UI. */
+export type SimOp = "add_branch" | "add_evidence" | "contradict" | "mark_stale" | "needs_you" | "skip_to_end";
 
 /**
  * The only surface the UI talks to. HttpTransport (real backend) and MockTransport (in-browser replay)
@@ -135,4 +140,7 @@ export interface Transport {
   steer(run_id: string, req: SteerRequest): Promise<void>;
   getSource(source_id: string): Promise<Source>;
   health(): Promise<{ ok: boolean; models?: string[]; tavily?: boolean }>;
+  /** Present on the mock only. */
+  simulate?(op: SimOp, node_id?: string, text?: string): void;
+  scenarios?: { id: string; label: string; question: string }[];
 }

@@ -23,6 +23,12 @@ The Tavily / Token Factory keys belong to the backend (repo-root `.env`, gitigno
 - **Flexible layout.** Chat rail, right dock and trace strip are resizable/collapsible; widths persist.
 - Steering buttons (deactivate / dig deeper / fix / accept) call the real `steer` endpoint; the mock reacts. Deeper steering behaviour is deferred on purpose.
 
+## Playing with the mock
+
+- Pick a scenario in the chat box before pressing Run: *Vendor due diligence* (10 nodes) or *Market scan* (24 nodes, deeper levels, seeded chat notes, echoes, a contradiction, an unverifiable quote).
+- Chat answers from the claims already in the graph (try "summarise", "how sure are we", "how many sources", or a topic that exists, e.g. "WMS integration"). Anything it has no evidence for opens a new branch with an invented but traceable claim.
+- **Play** tab (mock only): add a branch, add evidence, contradict, mark stale, flag needs-you on the selected node, or skip to the end of the run.
+
 ## Backend contract (what the UI calls)
 
 All in `src/api/types.ts` (`Transport`), HTTP implementation in `src/api/http.ts`.
