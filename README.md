@@ -91,6 +91,39 @@ Judges will ask, so we say it first:
 
 ---
 
+## Run it
+
+```bash
+# needs uv (https://docs.astral.sh/uv/) and Python 3.13
+uv sync
+cp .env.example .env          # add NEBIUS_API_KEY and TAVILY_API_KEY
+
+# replay a recorded, steered run: no API keys needed
+uv run python -m glassbox.cli --replay runs/sample
+
+# live run: trace streams in the terminal, answer at the end
+uv run python -m glassbox.cli "Is nuclear fusion likely to supply grid electricity before 2040?"
+
+# live run you can steer: type commands while it runs
+uv run python -m glassbox.cli -i "your question"
+#   drop d2 research this instead     redirect: cut d2, start a new direction
+#   dig d3 look for skeptical views   dig deeper (works on running or finished directions)
+#   status                            budgets and state per direction
+#   quit
+
+# the GUI: build once, then the server serves it at http://localhost:8000/?run=sample
+(cd web && npm install && npm run build)
+uv run uvicorn glassbox.server:app --port 8000
+
+# frontend dev with hot reload (proxies the API to :8000): http://localhost:5173
+(cd web && npm run dev)
+
+uv run pytest                 # 20 offline tests (fake model + fake Tavily)
+(cd web && npm test)          # graph reducer against runs/sample
+```
+
+Every run writes `runs/<id>/events.jsonl` (the log the graph is built from) and `runs/<id>/sources/` (the page texts that quotes are verified against).
+
 ## Architecture
 
 ```
@@ -105,7 +138,8 @@ Orchestrator (deepagents, Token Factory)
    │      ├─ tavily_extract   ──► read.*
    │      ├─ record_claim     ──► claim.recorded (quote verified)
    │      └─ finish_direction ──► direction.finished
-   └─ final answer ──► citation filter ──► report.final
+   └─ (all directions done) ──► fact-checker: claim.linked (corroborates / contradicts)
+                             ──► writer ──► citation filter ──► report.final
    │
    ▼
 GlassboxLogger (LangChain callback handler) ──► runs/<id>/events.jsonl
@@ -183,6 +217,40 @@ If there's time left after the run, drag the timeline scrubber: "Everything, inc
 | "Isn't confidence just made up?" | We don't show a probability. The colour is a rule you can check: number of independent origins, whether the quote was found, and whether there is a contradiction. |
 | "Can the citation still be wrong?" | Yes. The quote's existence is checked mechanically. Whether it supports the claim is a model judgment, and we label it as one. |
 | "Why not just use LangSmith?" | LangSmith shows a developer trace of LLM calls. We map the run into research concepts (plan, direction, evidence, stop reason) for the person asking the question. |
+
+## Next steps
+
+Status at 15:15: the agent, event log, quote checking, fact-checker, citation filter and steering all work from the CLI. Tests pass (18). A real steered run is in `runs/sample/`. Details are in [docs/agent-and-event-logging.md](docs/agent-and-event-logging.md#live-findings-1515).
+
+### Must have (in order)
+
+1. ~~**Fix: the agent skips research on easy questions.**~~ Done. `ForcePlanMiddleware` forces `tool_choice=plan_research` until a plan exists. If the orchestrator still makes no plan, or leaves planned directions undelegated, `GlassboxRun` starts them itself (`plan.created` then has `fallback: true`). Verified live: "What is the capital of Germany?" now plans 3 directions and records 17 verified claims (`runs/r_4ac08b27`).
+2. ~~**FastAPI server**~~ Done: `glassbox/server.py`, run with `uv run uvicorn glassbox.server:app --port 8000`.
+   - `POST /runs`, `GET /runs` (status `live` / `finished` / `incomplete`), `GET /runs/{id}/events` (SSE, `id:` = `seq`; resumes from `?from=N` or `Last-Event-ID`; `?speed=` for timed replay), `GET /runs/{id}/events.jsonl`, `GET /runs/{id}/sources/{sid}` (`{url, title, domain, text, read}`), `POST /runs/{id}/steer` (404 unknown dir, 409 run not live), `POST /runs/{id}/close`, `GET /health`.
+   - Live runs stay open for steering and close after 10 minutes idle. CORS is open. If `web/dist/` exists, it's served at `/`.
+3. ~~**Frontend against `runs/sample/`**~~ Done: `web/` (Vite + React + `@xyflow/react`). `graph = build(events)` in `web/src/graph.ts` is a pure reducer, tested against `runs/sample`.
+   - Radial graph: question → directions (size = traffic, pulse while running, stop badge, crossed out when redirected, dashed "redirected" edge to the new direction) → searches and claims (coloured by evidence status) → origins (one node per domain). Corroborate / contradict links are drawn between claims.
+   - Direction panel: why, stop reason + summary, claims, decision trail (model reasoning behind a toggle), **Redirect** / **Dig deeper** with an optional text field. Claim panel: quote, verification, origins, evidence links with the checker's reason.
+   - Answer panel: `[c#]` citations coloured by status open the source view, scrolled to the highlighted quote. v1/v2 switch, changed sentences highlighted, dropped-sentence count.
+   - Trace strip (click to select), timeline scrubber (rebuilds the graph from the first N events), stats bar, run picker, replay speed.
+4. ~~**Wire the frontend to the live server**~~ Done: the question box starts a run with `POST /runs`, the graph streams over SSE, and the steer buttons `POST /steer` (disabled on recorded runs and while scrubbing). Verified live: a redirect from the GUI greys out the direction and starts `dn1`.
+5. **Pick and rehearse the demo question** (by 17:00). It needs one direction worth cutting and one thin direction worth deepening. Run it 3 times; keep the best log as the fallback replay.
+6. **Record the 2-minute video live** (17:45), with both steers in one uncut run.
+7. **Submit by 18:15**: public repo, this README, video, and the checklist below.
+
+### Should have (if time)
+
+- **Fewer grey claims**: currently 20–28% of quotes can't be found. Have the researcher re-quote once when `record_claim` says "NOT found".
+- **Fewer "budget" stops**: show the remaining budget in `think` results too, not only after searches.
+- **Show `model.thought` in the GUI** as a collapsible "model reasoning" line under each decision (it's already in the log).
+- **Cost in the stats bar**: add the Nemotron price to `Config.prices` (it shows €0 right now).
+- **Reflection Beam as the writer**, only for the Reflection credits: set `WRITER_MODEL=<beam id>` in `.env` (ask Aksel for the id), run once, check latency. Optional; not required by the rules.
+
+### Known limits (say them, don't hide them)
+
+- The agent sometimes doesn't call `think` before a search; the trace then shows "no reason given".
+- Corroboration comes mostly from the fact-checker, not from the researchers themselves.
+- A steer takes effect at the researcher's next model call, a few seconds later.
 
 ## Team split
 

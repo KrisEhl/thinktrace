@@ -1,0 +1,249 @@
+[Skip to content](#main)
+
+
+[![Inside Deep Tech](https://www.insidedeeptech.com/assets/images/inside-deep-tech-logo.png?v=HTXyRmiyMdrrYHrQ)](https://www.insidedeeptech.com) NEWS / ANALYSIS / EXPLAINERS
+
+[Sign in](#/portal/signin)[Subscribe ↗](#/portal/signup)
+
+
+
+[← All intelligence](https://www.insidedeeptech.com)
+
+[Energy](/tag/energy/)/ ANALYSIS & PERSPECTIVE
+
+# Helion Energy: A Full Guide to Polaris, Orion, the Microsoft PPA, and Honest Limits
+
+Helion Energy full guide (Oct 2026): Polaris D-T fusion and 150 million °C, Orion construction in Malaga for Microsoft, timeline hedge to 2029-2030 full power, Series G to $500M, pulsed FRC tech, and honest limits.
+
+[Austin Heaton](/author/austin-heaton/)/10 min read
+
+Most private fusion companies sell a roadmap. Helion Energy sold a power purchase agreement. On May 10, 2023, it signed what it called the [world's first fusion energy purchase agreement with Microsoft](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com), with Constellation as power marketer, for a plant expected online by **2028** and targeting **50 MW** or more after a one-year ramp.
+
+That deal pulled Helion out of the pack. Everett, Washington-based Helion is building Orion in Malaga, Chelan County, while its seventh-generation Polaris prototype in February 2026 became the [first privately developed fusion machine to show measurable deuterium-tritium fusion and plasma temperatures of 150 million °C](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com).
+
+This full guide covers what Helion Energy is building, how pulsed field-reversed configuration (FRC) machines and direct magnetic electricity recovery work, the Polaris and Orion timelines, the Microsoft contract, funding, how Helion compares with Commonwealth Fusion Systems and other rivals, and the honest limits. For the tokamak path, start with Inside Deep Tech's [Commonwealth Fusion Systems SPARC full guide](https://www.insidedeeptech.com/commonwealth-fusion-systems-sparc-full-guide/).
+
+Last updated: October 10, 2026.
+
+## Key Takeaways
+
+* Polaris hit [measurable D-T fusion and 150 million °C in early 2026](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com).
+* Orion in Malaga targets [initial operations in 2028](https://www.helionenergy.com/orion?ref=insidedeeptech.com) for Microsoft's [50 MW PPA](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com).
+* Helion says full **50 MW** will [not hit in 2028; full power is 2029 or 2030](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman).
+* Series G closed at [\*\*$500 million\*\* in September 2026; \*\*$15.5 billion\*\* valuation](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com).
+* Honest limit: Polaris aims to [demonstrate electricity, not "net electricity"](https://www.helionenergy.com/faq?ref=insidedeeptech.com).
+
+⚠️
+
+Orion is a power plant bet. Polaris is a physics-and-power-electronics bet. Judge Helion Energy on whether fusion energy returns to the capacitor banks, and on whether grid connection in 2028 becomes actual megawatt-hours for Microsoft.
+
+## What Helion Energy is building in October 2026
+
+Helion Energy is a privately held fusion company founded in **2013**. Its stated mission is to build the world's first fusion power plant and deliver zero-carbon electricity from fusion ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+The company iterates prototypes instead of one megaproject. Polaris is generation seven. Trenta was generation six. Orion is the first commercial plant, under construction on land leased from the Chelan County Public Utility District in Malaga, Washington ([Helion, July 2025](https://www.helionenergy.com/newsroom/helion-secures-land-and-begins-building-site-of-worlds-first-fusion-power-plant?ref=insidedeeptech.com)).
+
+The commercial fuel cycle is deuterium-helium-3 (D-He3). Helion uses deuterium-tritium (D-T) and deuterium-deuterium (D-D) on Polaris to validate systems across fuels, then plans to raise helium-3 share for commercial ops ([Helion Polaris page](https://www.helionenergy.com/polaris?ref=insidedeeptech.com); [February 2026 milestone release](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com)).
+
+### Polaris and Orion at a glance
+
+| Parameter | Polaris (prototype) | Orion (first plant) |
+| --- | --- | --- |
+| Role | Demonstrate electricity from fusion; multi-fuel ops | Deliver grid power under Microsoft PPA |
+| Site | Helion facility (Everett, Wash. program) | Malaga, Chelan County, Washington |
+| Length / scale | [19 m long](https://www.helionenergy.com/polaris?ref=insidedeeptech.com) | Commercial generator building under construction |
+| Bank / field | [50+ MJ bank; 15+ T peak field](https://www.helionenergy.com/polaris?ref=insidedeeptech.com) | Scaled pulsed FRC for ≥50 MW after ramp |
+| Fuel focus | [D-D, D-T, D-He3](https://www.helionenergy.com/polaris?ref=insidedeeptech.com) | [D-He3 for commercial ops](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com) |
+| Status, Oct 2026 | [D-T + 150M°C milestones (Feb 2026)](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com) | [Initial ops 2028](https://www.helionenergy.com/orion?ref=insidedeeptech.com); construction since [July 2025](https://www.helionenergy.com/newsroom/helion-secures-land-and-begins-building-site-of-worlds-first-fusion-power-plant?ref=insidedeeptech.com) |
+| Headline goal | [Demonstrate electricity from fusion](https://www.helionenergy.com/faq?ref=insidedeeptech.com) | [≥50 MW after ramp](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com); full power [2029 or 2030](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman) |
+
+Source: [Helion Polaris](https://www.helionenergy.com/polaris?ref=insidedeeptech.com), [Helion Orion](https://www.helionenergy.com/orion?ref=insidedeeptech.com), [Microsoft PPA release](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com), [February 2026 milestones](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com), [Axios Seattle](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman).
+
+## How Helion's pulsed FRC machine works
+
+Helion's architecture is magneto-inertial fusion with field-reversed configuration plasmas. Two FRCs form at opposite ends of a linear chamber, accelerate toward the center, merge, then compress under a strong pulsed magnetic field until fusion conditions are reached ([Helion technology](https://www.helionenergy.com/technology?ref=insidedeeptech.com)).
+
+Helion says the FRCs accelerate to about **1 million mph**, collide, and compress to temperatures greater than **100 million °C** (**9 keV**) ([Helion technology](https://www.helionenergy.com/technology?ref=insidedeeptech.com)). TechCrunch reported merged plasmas start around **10 million to 20 million °C**, then compression pushes them to **150 million °C** in less than a millisecond on Polaris ([TechCrunch](https://techcrunch.com/2026/02/13/fusion-startup-helion-hits-blistering-temps-as-it-races-toward-2028-deadline/?ref=insidedeeptech.com)).
+
+The commercial temperature target is higher. CEO David Kirtley told TechCrunch Helion believes about **200 million °C** is the "optimal sweet spot" for a D-He3 plant ([TechCrunch](https://techcrunch.com/2026/02/13/fusion-startup-helion-hits-blistering-temps-as-it-races-toward-2028-deadline/?ref=insidedeeptech.com)). That is hotter than typical D-T tokamak targets, because D-He3 needs higher ion temperatures ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+### Direct electricity recovery, not a steam turbine
+
+Most magnetic-confinement fusion designs heat a working fluid and drive a turbine. Helion rejects that path. As the fused plasma expands, it pushes against the machine's magnetic field. By Faraday's law, the changing field induces current that Helion recaptures into capacitor banks ([Helion technology](https://www.helionenergy.com/technology?ref=insidedeeptech.com); [Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+Helion compares the idea to regenerative braking on an electric car: recover unused magnetic energy plus fusion-driven expansion energy on every pulse ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)). Polaris is built with inductive energy recovery and isotope separation, a **50+ MJ** capacitor bank, peak fields of **15+ T**, and **3,800** diagnostics ([Helion Polaris](https://www.helionenergy.com/polaris?ref=insidedeeptech.com)).
+
+Here's why that design choice matters. If direct recovery works at commercial pulse rates, Helion skips turbines, condensers, and a large thermal balance of plant. If it doesn't, the company still has to prove a harder physics path than a conventional D-T tokamak with a steam cycle.
+
+💡
+
+Inside Deep Tech's take: Helion Energy is not trying to win the same race Commonwealth Fusion Systems is running. CFS is betting that a stronger HTS tokamak plus a turbine plant wins. Helion is betting that pulsed FRCs plus magnetic recovery win. Both can be wrong for different reasons.
+
+## Why D-He3, and where helium-3 comes from
+
+Deuterium-helium-3 fusion puts more of its energy into charged particles than D-T does. Charged products couple better to Helion's magnetic recovery scheme and cut the neutron burden relative to a pure D-T plant, though Helion is clear the cycle is not neutron-free: D-D side reactions and secondary D-T still produce neutrons ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+Naturally available helium-3 is scarce. Helion's plan is to breed it in-house. One D-D branch produces helium-3 directly; another produces tritium that decays into helium-3. Helion says it captures, separates, and recycles those isotopes ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com); [TechCrunch](https://techcrunch.com/2026/02/13/fusion-startup-helion-hits-blistering-temps-as-it-races-toward-2028-deadline/?ref=insidedeeptech.com)).
+
+Polaris's January 2026 D-T campaign was a stepping stone, not the commercial endpoint. Helion says it was the first private company cleared to possess and use tritium for fusion energy demonstration, and that D-T testing helps it scale toward D-He3 temperatures ([Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com)). The [measurement blog](https://www.helionenergy.com/blog/how-we-conducted-and-measured-d-t-fusion?ref=insidedeeptech.com) reports a roughly tenfold neutron-signal jump over typical D-D pulses on the first D-T shot, with five more pulses following.
+
+## From Trenta to Polaris: the prototype ladder
+
+Helion's sixth prototype, Trenta, made the company the first private fusion firm to announce fuel temperatures above **100 million °C**, and completed a **16-month** continuous vacuum campaign ([Helion, June 2021](https://www.helionenergy.com/newsroom/helion-energy-achieves-100-million-degrees-celsius-fusion-fuel-temperature-and-confirms-16-month-continuous-operation-of-its-fusion-generator-prototype?ref=insidedeeptech.com)). Helion's FAQ says Trenta ran for two years, completed **10,000** high-power pulses, showed compression fields greater than **10 tesla**, and plasma lifetimes greater than **1 millisecond** ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+Polaris started operating at the end of **2024** ([Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com)). It is longer, higher-field, and built around electricity recovery. Helion's FAQ now says Polaris is designed to demonstrate electricity production from fusion and to validate multi-fuel operation, and that this would be the first time a fusion machine directly recovers and stores electricity from fusion-driven plasma expansion ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+That language change is deliberate. In **2021**, Helion used "net electricity" when discussing Polaris. The company later said the term was poorly defined across the industry and now prefers "demonstrating electricity from fusion": show that fusion added recoverable energy to the capacitor banks, measured before and after a pulse ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)).
+
+## The timeline: Microsoft PPA, Orion construction, and the 2028 hedge
+
+| Date | Milestone | Source |
+| --- | --- | --- |
+| Jun 2021 | Trenta exceeds 100M°C; 16-month vacuum campaign | [Helion](https://www.helionenergy.com/newsroom/helion-energy-achieves-100-million-degrees-celsius-fusion-fuel-temperature-and-confirms-16-month-continuous-operation-of-its-fusion-generator-prototype?ref=insidedeeptech.com) |
+| May 10, 2023 | Microsoft fusion PPA; ≥50 MW after 1-year ramp; target online 2028 | [Helion](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com) |
+| Jul 2025 | Orion site work begins in Malaga, Chelan County | [Helion](https://www.helionenergy.com/newsroom/helion-secures-land-and-begins-building-site-of-worlds-first-fusion-power-plant?ref=insidedeeptech.com) |
+| End of 2024 | Polaris begins operations | [Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com) |
+| Jan 2026 | Polaris D-T campaign; temps to 150M°C | [Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com) |
+| Feb 13, 2026 | Public announcement of D-T and 150M°C milestones | [Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com) |
+| Spring 2026 | Orion generator-building earthwork begins | [Helion](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com) |
+| Jun 4, 2026 | Series G $465M initial close; $15.5B valuation | [Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) |
+| Jun 16, 2026 | Washington DOH RML and RAEL for Orion | [Helion](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com) |
+| Sep 2026 | Series G closes at $500M; Axios timeline hedge coverage | [Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com), [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman) |
+| 2028 (stated) | Orion begins initial operations; grid connect / ops per Microsoft contract | [Helion](https://www.helionenergy.com/orion?ref=insidedeeptech.com), [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman) |
+| 2029 or 2030 | Full 50 MW operation (Helion public-affairs statement) | [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman) |
+
+Source: [Helion newsroom](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com), [Orion page](https://www.helionenergy.com/orion?ref=insidedeeptech.com), [Series G release](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com), [Axios Seattle](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman); each row links its primary source.
+
+The hedge is the story of 2026. Helion's Orion page now says the plant will [begin initial operations in 2028](https://www.helionenergy.com/orion?ref=insidedeeptech.com). Axios reported Helion removed earlier website language that Orion would begin producing electricity by 2028, and quoted public affairs director Jackie Siebens at FusionX in Boston saying there is "no universe" in which **50 megawatts** hits full operation in **2028** Full power won't come before **2029** or **2030**, she said ([Axios Seattle](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman); [Axios Pro](https://web.archive.org/web/20260909065905/https://www.axios.com/pro/climate-deals/2026/09/08/helion-energy-fusion-net-electricity-date-year)).
+
+Siebens also said the Microsoft contract requires Orion to at least "be connected to the grid and begin operations by the end of 2028." Axios noted it is unclear whether that means supplying electricity; Microsoft declined to comment ([Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman)). That distinction between interconnection and offtake is the one buyers should keep in diligence memos.
+
+## Regulation and the Malaga build
+
+On June 16, 2026, Helion said it became the first company to secure the regulatory licenses needed for a fusion power plant: a Radioactive Materials License and a Radioactive Air Emissions License from the Washington Department of Health for Orion ([Helion](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com)).
+
+The pathway sits under the U.S. Nuclear Regulatory Commission's byproduct-materials framework for fusion, reflected in the bipartisan ADVANCE Act of **2024**, rather than fission-reactor licensing. Washington clarified fusion permitting in state bills HB **1924** and HB **1018**. Helion says it held more than **10** public meetings in Chelan County since **2023**, that assembly and office buildings are complete, and that it is working toward a transmission interconnection agreement with Chelan County PUD ([Helion](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com)).
+
+Licenses unlock construction. They do not prove plasma performance, pulse rate, or fuel breeding at commercial duty cycle. Treat the DOH milestone as real, and still incomplete.
+
+## Funding: Series G, SoftBank, and the $15.5 billion mark
+
+| Round / update | Date | Amount / value | Notable names | Source |
+| --- | --- | --- | --- | --- |
+| Series G (initial) | Jun 4, 2026 | $465 million; $15.5B post-money | Thrive Capital (lead); SoftBank Vision Fund 2 (existing) | [Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) |
+| Series G (final) | Sep 2026 | $500 million closed | Oversubscribed; capped despite more interest | [Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) |
+| Total invested to date | As of Jun 2026 | $1.5 billion | Includes Capricorn, Lightspeed, Mithril, Good Ventures | [Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) |
+
+Source: [Helion Series G release](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) (includes the September 2026 close update).
+
+New investors in the announced round included Alta Park Capital, Anti Fund, BoxGroup, Lux Capital, Peak XV Partners, and Ford Motor Company Executive Chairman Bill Ford, alongside existing backers Capricorn Technology Impact Funds, Lightspeed, Mithril, Dustin Moskovitz through Good Ventures Foundation, SoftBank Vision Fund 2, and a university endowment ([Helion](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com)).
+
+TechCrunch also reported Helion raised **$425 million** in 2025 from a group including Sam Altman, Mithril, Lightspeed, and SoftBank ([TechCrunch](https://techcrunch.com/2026/02/13/fusion-startup-helion-hits-blistering-temps-as-it-races-toward-2028-deadline/?ref=insidedeeptech.com)). Helion's own Series G release is the cleanest primary source for the **$1.5 billion** cumulative figure and the **$15.5 billion** valuation.
+
+## How Helion compares with CFS, TAE, Tokamak Energy, and ITER
+
+| Program | Approach | Status, Oct 2026 | Next commercial step | Source |
+| --- | --- | --- | --- | --- |
+| Helion Polaris / Orion | Pulsed FRC, D-He3 commercial | D-T + 150M°C; Orion under construction | Initial ops 2028; full 50 MW 2029/2030 | [Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com), [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman) |
+| CFS SPARC / ARC | HTS tokamak, D-T | SPARC almost 80% complete; ops 2027 | ARC ~400 MW in Virginia, early 2030s | [CFS](https://blog.cfs.energy/sparc-progress-doe-milestone-approvals-reflect-cfs-power-plant-maturity/?ref=insidedeeptech.com), [CFS](https://www.cfs.energy/news-and-media/commonwealth-fusion-systems-to-build-worlds-first-commercial-fusion-power-plant-in-virginia/?ref=insidedeeptech.com) |
+| TAE Norm / Da Vinci | Beam-driven FRC, p-B11 goal | NBI-only FRC; Copernicus skipped (Nov 2025) | Da Vinci prototype plant | [TAE](https://tae.com/tae-shortens-device-roadmap-prepares-for-commercial-era/?ref=insidedeeptech.com) |
+| Tokamak Energy | Spherical tokamak, HTS | Demo4 magnets hit 13.7 T | STEP magnet partner through 2029 | [Tokamak Energy](https://tokamakenergy.com/2026/09/09/tokamak-energy-completes-world-leading-fusion-magnet-campaign-validating-technology-for-commercial-hts-systems/?ref=insidedeeptech.com) |
+| ITER | LTS tokamak, intergovernmental | Assembly; full magnetic energy 2036 | D-T ops 2039, Q≥10 goal | [ITER](https://www.iter.org/node/20687/new-baseline-prioritize-robust-start-exploitation?ref=insidedeeptech.com) |
+
+Source: [Helion](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com), [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman), [CFS](https://blog.cfs.energy/sparc-progress-doe-milestone-approvals-reflect-cfs-power-plant-maturity/?ref=insidedeeptech.com), [TAE](https://tae.com/tae-shortens-device-roadmap-prepares-for-commercial-era/?ref=insidedeeptech.com), [Tokamak Energy](https://tokamakenergy.com/2026/09/09/tokamak-energy-completes-world-leading-fusion-magnet-campaign-validating-technology-for-commercial-hts-systems/?ref=insidedeeptech.com), [ITER](https://www.iter.org/node/20687/new-baseline-prioritize-robust-start-exploitation?ref=insidedeeptech.com).
+
+The comparison is not apples to apples. Helion has already run D-T fuel in a private machine; SPARC has not yet made a plasma. CFS has the thicker tokamak physics database and a peer-reviewed SPARC design. Helion has the earlier offtake date on paper and a thinner FRC operating history at commercial scale. Inside Deep Tech covers the CFS path in detail here:
+
+[Commonwealth Fusion Systems SPARC: A Full Guide to the HTS Tokamak, ARC, and the Road to Fusion Power
+
+SPARC assembly status, HTS magnets, ARC in Virginia, Google and Eni offtake deals, funding, and honest limits.
+
+![](https://www.insidedeeptech.com/favicon.ico)Inside Deep Tech](https://www.insidedeeptech.com/commonwealth-fusion-systems-sparc-full-guide/)
+
+For AI load growth and nearer-term firm power, see Inside Deep Tech's guides to [whether fusion can power the AI data center boom](https://www.insidedeeptech.com/can-fusion-power-the-ai-data-center-boom/), [small modular reactors for AI data centers](https://www.insidedeeptech.com/small-modular-reactors-nuclear-power-ai-data-centers/), and [behind-the-meter generation](https://www.insidedeeptech.com/behind-the-meter-generation-ai-data-centers-full-guide/). Physical AI demand context is in the [October 2026 Physical AI Market Report](https://www.insidedeeptech.com/physical-ai-market-report-october-2026/).
+
+[Read the CFS SPARC full guide](https://www.insidedeeptech.com/commonwealth-fusion-systems-sparc-full-guide/)
+
+## Honest limits
+
+The real limits as of October 2026:
+
+* **Grid connect is not full power.** Helion's Orion page says [initial operations in 2028](https://www.helionenergy.com/orion?ref=insidedeeptech.com). Siebens said [full 50 MW will not land in 2028](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman).
+* **Demonstrating electricity ≠ plant net.** Polaris's goal is [recoverable fusion energy on the capacitor banks](https://www.helionenergy.com/faq?ref=insidedeeptech.com), not a utility meter reading.
+* **Helium-3 breeding is unproven at plant scale.** Helion plans to [breed and recycle He3 from D-D pathways](https://www.helionenergy.com/faq?ref=insidedeeptech.com); throughput and purity at Orion duty cycle remain to be shown.
+* **Pulse rate and fatigue.** Helion lists [repetition rate, materials survival, and coil fatigue](https://www.helionenergy.com/faq?ref=insidedeeptech.com) among remaining commercial risks.
+* **Interconnection still pending.** Helion is [working toward a Chelan PUD transmission agreement](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com); licenses are not the same as a live grid tie.
+* **FRC physics record.** Pulsed FRCs have less public operating time at fusion-relevant conditions than tokamaks; Axios also noted [academic papers questioning Helion assumptions](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman).
+* **Offtake pricing undisclosed.** The [2023 Microsoft PPA release](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com) does not publish $/MWh or penalty schedules in the public text.
+
+⚡
+
+Inside Deep Tech's take: Helion Energy has the boldest near-term commercial date in private fusion and the most unusual machine. That combination is why Microsoft signed, and why the 2028 language now needs a glossary. Track capacitor-bank electricity on Polaris, Orion generator-building progress, and whether "initial operations" ever means billed megawatt-hours.
+
+---
+
+## Frequently asked questions
+
+#### What is Helion Energy building?
+
+Helion Energy is building pulsed field-reversed configuration fusion machines. Polaris is the seventh prototype, meant to [demonstrate electricity from fusion](https://www.helionenergy.com/faq?ref=insidedeeptech.com). Orion in Malaga, Washington, is the first commercial plant under a [Microsoft power purchase agreement](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com).
+
+#### Has Helion Energy achieved fusion?
+
+Yes, on prototypes. In February 2026 Helion said Polaris produced [measurable deuterium-tritium fusion and 150 million °C plasmas](https://www.helionenergy.com/newsroom/helion-achieves-new-fusion-energy-milestones?ref=insidedeeptech.com). Trenta earlier exceeded [100 million °C](https://www.helionenergy.com/newsroom/helion-energy-achieves-100-million-degrees-celsius-fusion-fuel-temperature-and-confirms-16-month-continuous-operation-of-its-fusion-generator-prototype?ref=insidedeeptech.com). Commercial grid power has not started.
+
+#### When will Orion deliver power to Microsoft?
+
+The 2023 PPA expected the plant [online by 2028 with ≥50 MW after a one-year ramp](https://www.helionenergy.com/newsroom/helion-announces-worlds-first-fusion-ppa-with-microsoft?ref=insidedeeptech.com). Helion's Orion page now says [initial operations begin in 2028](https://www.helionenergy.com/orion?ref=insidedeeptech.com). A Helion executive said [full 50 MW will not come before 2029 or 2030](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman).
+
+#### How does Helion Energy make electricity without a steam turbine?
+
+Helion recovers energy electromagnetically. Expanding plasma pushes on magnetic fields and induces current back into capacitor banks, per [Helion's technology page](https://www.helionenergy.com/technology?ref=insidedeeptech.com) and [FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com).
+
+#### Why does Helion use helium-3?
+
+D-He3 puts more energy into charged particles that suit direct magnetic recovery and reduces neutrons versus D-T, though side reactions still produce neutrons ([Helion FAQ](https://www.helionenergy.com/faq?ref=insidedeeptech.com)). Helion plans to [breed helium-3 from deuterium reactions](https://www.helionenergy.com/faq?ref=insidedeeptech.com).
+
+#### How much money has Helion Energy raised?
+
+Helion said total invested capital reached [$1.5 billion as of its June 2026 Series G announcement](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com), with the round closing at [$500 million in September 2026](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com) at a [$15.5 billion post-money valuation](https://www.helionenergy.com/newsroom/helion-raises-465-million-series-g-funding-round-to-meet-surging-global-demand-for-power?ref=insidedeeptech.com).
+
+#### How is Helion Energy different from Commonwealth Fusion Systems?
+
+CFS is building a compact HTS tokamak (SPARC) and a D-T steam-cycle plant (ARC). Helion uses pulsed FRCs and direct magnetic recovery with a D-He3 commercial fuel plan. See Inside Deep Tech's [CFS SPARC full guide](https://www.insidedeeptech.com/commonwealth-fusion-systems-sparc-full-guide/).
+
+## What to watch next
+
+Three signals matter more than slide decks: Polaris proving recoverable fusion electricity on the banks, Orion's generator building moving from earthwork to machine install, and public clarity on whether end-2028 means electrons sold or only a grid connection ([Helion](https://www.helionenergy.com/newsroom/helion-clears-key-regulatory-milestone-on-the-path-to-building-and-operating-the-worlds-first-fusion-power-plant?ref=insidedeeptech.com); [Axios](https://web.archive.org/web/20260928181128/https://www.axios.com/local/seattle/2026/09/28/helion-energy-orion-fusion-microsoft-commercial-power-altman)).
+
+If you're planning firm clean power for the early 2030s, keep Helion Energy on the watchlist next to CFS, SMRs, and behind-the-meter gas or storage. Treat Orion as a milestone with a physics-and-hardware gate, not as contracted firm capacity on a utility IRP.
+
+[Browse more Inside Deep Tech fusion and energy guides](https://www.insidedeeptech.com/)
+
+## Keep exploring
+
+[All stories ↗](https://www.insidedeeptech.com)
+
+[![Blurred trapped-ion quantum computer with cyan laser beams and vacuum chamber hardware, with white Montserrat title boxes reading IonQ Tempo, A Full Guide](https://storage.ghost.io/c/85/42/8542ca3e-ec07-47c4-9d72-d69d172c1781/content/images/size/w1200/2026/10/ionq-tempo-aq64-forte-enterprise-full-guide-cover.png)](/ionq-tempo-aq64-forte-enterprise-full-guide/)
+
+[Quantum](/tag/quantum/)
+
+### [IonQ Tempo: A Full Guide to #AQ 64, Forte Enterprise, Data-Center Quantum, and Honest Limits](/ionq-tempo-aq64-forte-enterprise-full-guide/)
+
+[![Blurred row of humanoid robots on a dim factory floor with white Montserrat title boxes reading Humanoid Robots 2026, A Full Guide](https://storage.ghost.io/c/85/42/8542ca3e-ec07-47c4-9d72-d69d172c1781/content/images/size/w1200/2026/10/humanoid-robots-2026-full-guide-cover.png)](/humanoid-robots-2026-full-guide/)
+
+### [Humanoid Robots in 2026: A Full Guide to Figure, Optimus, Atlas, Digit, Unitree, and Apollo](/humanoid-robots-2026-full-guide/)
+
+[![Blurred SpaceX Starship rocket beside its launch tower at dusk, with white Montserrat title boxes reading SpaceX Starship V3, A Full Guide](https://storage.ghost.io/c/85/42/8542ca3e-ec07-47c4-9d72-d69d172c1781/content/images/size/w1200/2026/10/spacex-starship-v3-full-guide-cover.png)](/spacex-starship-v3-full-guide/)
+
+### [SpaceX Starship V3: A Full Guide to Raptor 3, the First Orbital Flight, Payload Economics, and Honest Limits](/spacex-starship-v3-full-guide/)
+
+THE INSIDE DEEP TECH NEWSLETTER
+
+## Understand what comes next.
+
+Fresh perspectives on the technologies shaping tomorrow. In your inbox.
+
+[Join the newsletter ↗](#/portal/signup)News and analysis, delivered to your inbox.
+
+ 

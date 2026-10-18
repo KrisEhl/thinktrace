@@ -7,32 +7,76 @@ Goal: a research agent built on the cookbook stack, whose **every step is writte
 
 ---
 
+## 0. Build order: the agent on its own (no GUI, no server)
+
+> **Status 15:15: steps 1–8 are done.** 18 offline tests pass (`uv run pytest`). Verified live with Nemotron 3.5 Super VL and Tavily, including mid-run steering. A real steered run is committed as `runs/sample/`. What changed from the original plan after testing live is listed in [Live findings](#live-findings-1515).
+
+The goal is to have the agent working and logging from the command line before anything else depends on it. Each step ends with something you can run and check. **Don't start the next step until the check passes.**
+
+| # | Build | Check (done when…) | Time |
+|---|---|---|---|
+| 1 | **Cookbook as-is.** `venv`, install, `.env`. Run the cookbook's `create_deep_agent(model, tools=[TavilySearch])` on one question. | A report with sources prints. Also run `GET /v1/models`: the ids for MiniMax-M3, Nemotron and Beam are known. | 15 min |
+| 2 | **Raw logger.** `events.py` (envelope + JSONL writer) and `logger.py`, with only the raw hooks (`llm.*`, `tool.*`, run-tree registry). Attach to the cookbook agent. | `runs/<id>/events.jsonl` has every LLM and tool call. **Subagent calls appear, and their `parent_span` chain reaches a `task` call.** If not, switch to the `astream(subgraphs=True)` fallback now (section 1). | 20 min |
+| 3 | **Our tools with stub stores.** `tools.py`: `think`, `tavily_search`, `tavily_extract`, `record_claim`, `finish_direction`, `plan_research`, plus `SourceStore`, `ClaimStore` and `verify.py`. Unit-test `verify.py`. | You can call each tool directly from a Python shell and get back content and an artifact. `pytest tests/test_verify.py` is green. | 30 min |
+| 4 | **One researcher, one direction.** `create_agent(RESEARCHER_MODEL, tools, RESEARCHER_PROMPT)`, called directly with `"[d1] <topic>"` and `metadata={"dir": "d1"}`. Budgets are counters in a minimal `RunControl`. | The log shows `decision` → `search.*` → `read.*` → `claim.recorded` (mostly `exact`) → `direction.finished` with a real reason, all with `dir: "d1"`. Tune the prompt until quotes verify. | 30 min |
+| 5 | **Orchestrator + parallel researchers.** `create_deep_agent(ORCHESTRATOR_MODEL, tools=[plan_research], subagents=[CompiledSubAgent(researcher)])`. Semantic events in the logger (`plan.created`, `direction.started`, …) and direction attribution. | `plan.created` with 3–4 directions. The `task` calls overlap in time (they run in parallel). Every researcher event has the right `dir`. If the calls don't overlap, try another orchestrator model. | 30 min |
+| 6 | **Writer + citation filter.** Beam writes from the `ClaimStore`; `citations.py` drops uncited sentences. `cli.py "question"` prints the answer and the log path. | A full run from the CLI. Every sentence has `[c#]`. Spot-check 3 citations against the source URL by hand. **Commit this log as `runs/sample/`.** | 25 min |
+| 7 | **Steering from the CLI.** `RunControl` + `SteeringMiddleware` + tool guard. `cli.py` gets a REPL while the run is going: `drop d3 [new focus]`, `dig d2 [focus]`. | Mid-run `drop` blocks d3's next tool call. `dig` on a finished direction emits `direction.resumed` and new searches. `report.final` v2 lists `changed` sentences. Commit a steered log as well. | 40 min |
+| 8 | **Tests with stubs.** `test_logger.py` and `test_steering.py` with a fake model and a fake Tavily client. | `pytest` green, without network access. | 20 min |
+
+About **3.5 hours** if one person does everything. Split across A and B, steps 3 + 4 (A) and steps 2 + 5's logger part (B) run in parallel, so step 6 lands around 16:15.
+
+**The frontend doesn't wait for this.** C builds against the hand-written sample log (section 4), then against the real `runs/sample/` from step 6. The server (section 6) only wraps `run()` and `RunControl` from steps 6–7, so it's a thin layer added afterwards.
+
+**What to cut if time runs short, last item first:**
+1. Step 8 tests
+2. `model.thought`
+3. Fuzzy quote matching (exact only)
+4. Resuming a *finished* direction (keep dig deeper on running directions only)
+
+Never cut: steps 2, 4, 5 and 6, and the drop guard.
+
+### Live findings (15:15)
+
+What we learned from live runs, and what changed because of it:
+
+| Finding | Change |
+|---|---|
+| **Callbacks do reach subagents.** The `parent_span` chain leads to the `task` call, and parallel `task` calls overlap in time. | No fallback needed. |
+| **The Nemotron endpoint responds in under 1 second per call**, makes parallel tool calls reliably, and returns its reasoning text in a `reasoning` field. `langchain-openai` drops that field. | `config.py` uses a `ChatNebius` subclass that keeps it as `additional_kwargs.reasoning_content`, which feeds `model.thought` events. |
+| The model batches 2–4 searches into one step, with one `think` per step. | The prompt now asks for one `think` per step, not per search. |
+| With budget 4 + 4, every direction stopped on `budget`. | Budget raised to 5 + 5. Search results now end with "Budget left: N searches, M reads". The prompt says "budget is a ceiling, not a target". Directions now stop on `enough_evidence` too. |
+| 37% of quotes weren't found: some were stitched from fragments with "...", others quoted unread sources from snippets. | Fragments are verified one by one, in order. If the source wasn't read, `record_claim` fetches the page first (`auto_read`, not charged to the read budget). Down to about 20–28%. Grey claims are excluded from the answer. |
+| The agent never sets `corroborates`, and claims are compound, so string matching can't find duplicates. | A **fact-checker** step (one structured-output call) links corroborating and contradicting claims before each writer pass. Code rules decide what counts: a corroboration must come from a different domain, and both claims must be verified. Each link emits `claim.linked` with the checker's reason. |
+| A whole run takes 40–55 s, with about 250–500k input tokens. | — |
+
 ## 1. Stack and setup
 
 | Piece | Choice |
 |---|---|
 | Agent harness | `deepagents` (0.7.x), the same as the [cookbook](https://dev.nebius.com/cookbook/deep-research-agent-tavily) |
-| Models | Token Factory via `langchain-nebius` (`ChatNebius`) |
+| Models | Token Factory via `langchain-nebius` (`ChatNebius`, subclassed to keep the reasoning text). We currently use `dedicated/GTC-Berlin-2026/Nemotron-3.5-Super-VL-PsBCQo` for all roles. |
 | Retrieval | `tavily-python` (`TavilyClient.search` and `.extract`), wrapped in our own tools |
-| Budgets | Per-direction counters in `RunControl`, checked inside our tools, so steering can change them (section 9) |
+| Budgets | Per-direction counters in `RunControl` (5 searches + 5 reads; +3 + 3 per dig), checked inside our tools, so steering can change them (section 9) |
 | Steering | `RunControl` (Python) + a `SteeringMiddleware` (`abefore_model`) that injects user instructions |
 | Logging | A LangChain `AsyncCallbackHandler` writing JSONL |
-| Server | FastAPI + SSE (`sse-starlette`) |
-| Python | 3.12 (the cookbook requires ≥ 3.12) |
+| Server | FastAPI + SSE (`sse-starlette`); not built yet |
+| Python | 3.13 via `uv` (the cookbook requires ≥ 3.12) |
 
-Environment (`.env.example`):
+Environment (`.env.example`; `.env` is git-ignored):
 
 ```
 NEBIUS_API_KEY=
-NEBIUS_BASE_URL=https://api.tokenfactory.nebius.com/v1
+NEBIUS_BASE_URL=https://api.tokenfactory.eu-west2.nebius.com/v1/   # our hackathon endpoint
 TAVILY_API_KEY=
-ORCHESTRATOR_MODEL=MiniMaxAI/MiniMax-M3
-RESEARCHER_MODEL=MiniMaxAI/MiniMax-M3
-WRITER_MODEL=<Beam 1.0 id from /v1/models>
+ORCHESTRATOR_MODEL=dedicated/GTC-Berlin-2026/Nemotron-3.5-Super-VL-PsBCQo
+RESEARCHER_MODEL=dedicated/GTC-Berlin-2026/Nemotron-3.5-Super-VL-PsBCQo
+WRITER_MODEL=<Beam 1.0 id, once we have it; else the same Nemotron id>
+CHECKER_MODEL=        # optional, defaults to WRITER_MODEL
 RUNS_DIR=runs
 ```
 
-**Step 0 (A, by 15:00):** run the cookbook unchanged, with our callback handler attached, and confirm two things:
+**Step 0 (A, by 15:00):** run the cookbook unchanged, with our callback handler attached (`uv run python scripts/check_setup.py cookbook`), and confirm two things:
 
 1. A report with sources comes back.
 2. **Callbacks reach the subagents.** `deepagents` calls subagents with `ainvoke` inside the `task` tool, with a fresh config. LangChain should still pass the parent callbacks on through its context variable. Check that the subagent's tool calls appear in the log, and that their `parent_run_id` chain leads up to the `task` tool run.
@@ -63,6 +107,9 @@ run(question)
  │    so that RunControl can also start it directly for steering (section 9)
  │    loop: think → search/extract → record_claim… → think → … → finish_direction
  │    final message: the direction summary plus a list of claim ids
+ │
+ ├─ Fact-checker (one structured-output call, CHECKER_MODEL): links claims that corroborate / contradict
+ │    → claim.linked events; code rules: corroboration needs a different domain, both claims verified
  │
  └─ Writer (a plain LLM call outside deepagents, WRITER_MODEL = Beam)
       runs when the orchestrator and all researchers are idle, and again after each steer
@@ -177,7 +224,7 @@ One JSON object per line in `runs/<run_id>/events.jsonl`. Events are append-only
 | `seq` | Monotonic per run, starting at 0. The frontend orders and resumes by it. |
 | `span` / `parent_span` | The LangChain `run_id` / `parent_run_id`. Lets you rebuild the call tree. |
 | `dir` | The direction id, or `null` for orchestrator-level events. Taken from `metadata["dir"]` if set (researchers started by steering), otherwise found by walking up the run tree to the `task` call (section 5). |
-| `agent` | `orchestrator` \| `researcher` \| `writer` \| `system` |
+| `agent` | `orchestrator` \| `researcher` \| `checker` \| `writer` \| `system` |
 
 ### Types
 
@@ -186,7 +233,7 @@ Semantic events are what the graph is built from. Raw events are always emitted 
 | Type | When | `data` |
 |---|---|---|
 | `run.started` | `run()` begins | `{question, models: {orchestrator, researcher, writer}, budgets}` |
-| `plan.created` | `plan_research` ends | `{directions: [{id, title, why, queries}]}` |
+| `plan.created` | `plan_research` ends, or the orchestrator made no plan | `{directions: [{id, title, why, queries}], fallback?: true}` (fallback: one direction, the question itself, agent `system`) |
 | `direction.started` | `task` tool starts | `{id, title, task_description, adhoc: bool}` |
 | `decision` | `think` starts | `{next_action, reason, reflection}` |
 | `search.started` | `tavily_search` starts | `{query}` |
@@ -194,7 +241,9 @@ Semantic events are what the graph is built from. Raw events are always emitted 
 | `source.added` | First time a URL is seen | `{source_id, url, title, domain}` |
 | `read.started` | `tavily_extract` starts | `{source_id}` |
 | `read.completed` | `tavily_extract` ends | `{source_id, url, chars, ok, error?}` |
-| `claim.recorded` | `record_claim` ends | `{claim_id, text, quote, source_id, verified, span, corroborates, contradicts}` |
+| `claim.recorded` | `record_claim` ends | `{claim_id, text, quote, source_id, url, domain, verified, span, corroborates, contradicts, corroboration: "agent"\|"auto"\|null, verified_against: "full_text"\|"snippet", auto_read}` |
+| `check.started` | The fact-checker begins (before each writer pass) | `{n_claims}` (agent `checker`) |
+| `claim.linked` | The fact-checker links two claims, and the link passes the code rules | `{claim_id, relation: "corroborates"\|"contradicts", target, by: "checker", reason}` |
 | `direction.finished` | `finish_direction` ends **or** the researcher run ends without it | `{id, reason: "enough_evidence"\|"nothing_new"\|"budget"\|"dropped_by_user"\|"no_reason", summary, claim_ids}` |
 | `budget.hit` | A tool returns `artifact.blocked == "budget"` | `{tool, limit}` |
 | `steer.applied` | `POST /steer` accepted, written **before** any effect | `{steer_id, action: "redirect"\|"dig_deeper", dir, text, new_dir?, budget_added?}` |
@@ -202,7 +251,7 @@ Semantic events are what the graph is built from. Raw events are always emitted 
 | `direction.resumed` | Dig deeper on a direction that had already finished | `{id, steer_id, focus_claim_ids}` |
 | `steer.delivered` | `SteeringMiddleware` injects the instruction into a model call | `{steer_id, dir, agent}` |
 | `model.thought` | `llm.completed` includes reasoning text (`additional_kwargs.reasoning_content` or reasoning content blocks) | `{text}` (shown and labelled "model reasoning") |
-| `synthesis.started` | The writer begins | `{n_claims}` |
+| `synthesis.started` | The writer begins | `{n_claims, version}` |
 | `report.final` | The citation filter is done (again after each steer) | `{version, markdown, raw_markdown, cited_claim_ids, dropped: [sentence], changed: [sentence], after_steer_ids}` |
 | `run.idle` | The writer is done and no researcher is running | `{report_version}` |
 | `run.finished` | `POST /close`, or 10 minutes idle (the CLI closes after the first `run.idle`) | `{status: "ok"\|"error", duration_ms, totals: {searches, reads, claims, directions, steers, restarts: 0, input_tokens, output_tokens, cost_usd}}` |
@@ -267,13 +316,14 @@ POST /runs                    {question}            -> {run_id}       starts run
 GET  /runs                                          -> [{run_id, question, status, started_at}]
 GET  /runs/{id}/events?from=N                       SSE: replay the file from seq N, then tail live until run.finished
 GET  /runs/{id}/events.jsonl                        raw file (download / offline replay)
-GET  /runs/{id}/sources/{source_id}                 {url, title, text}
+GET  /runs/{id}/sources/{source_id}                 {source_id, url, title, domain, text, read}   (text is null if the page was never read)
 GET  /health                                        {models_ok, tavily_ok}
 POST /runs/{id}/steer         {action: "redirect"|"dig_deeper", dir, text?}  -> {steer_id}   (section 9)
 POST /runs/{id}/close                               -> emits run.finished
 ```
 
-- Each SSE `data:` line is exactly one envelope, and the SSE `id:` is `seq`, so the browser resumes on reconnect.
+- Each SSE `data:` line is exactly one envelope, and the SSE `id:` is `seq`, so the browser resumes on reconnect (`Last-Event-ID`; `?from=` wins if both are given).
+- `POST /steer` returns 404 for an unknown direction and 409 if the run isn't live (finished, or only on disk).
 - `?speed=2` on a finished run replays with the original timing, scaled. This is the Wi-Fi fallback and the "sample run" for judges.
 - CORS is open for the Vite dev server.
 
@@ -288,6 +338,7 @@ glassbox/
   steering.py      SteeringMiddleware (abefore_model)
   verify.py        quote verification
   citations.py     citation filter
+  checker.py       fact-checker: links corroborating / contradicting claims (code rules decide what counts)
   events.py        Pydantic envelope + EventWriter (JSONL + fan-out)
   logger.py        GlassboxLogger callback handler
   agent.py         build_orchestrator(), run(question, run_id) incl. writer step
@@ -297,7 +348,10 @@ glassbox/
 runs/
   sample/          committed: hand-written log (15:15), later replaced by a real recorded run
 tests/
-  test_verify.py, test_citations.py, test_logger.py, test_steering.py
+  fakes.py         scripted chat models + fake Tavily
+  test_verify.py, test_citations.py, test_claims.py, test_agent.py (logger + full run), test_steering.py
+scripts/
+  check_setup.py   `models` lists Token Factory models; `cookbook` runs the cookbook agent with our logger
 ```
 
 `runs/*` is git-ignored except `runs/sample/`.
@@ -328,6 +382,7 @@ The frontend builds the graph with a pure `apply(graph, event)`. No other state.
 | `source.added` | Source node (grouped by `domain` = one origin) |
 | `read.completed` | Mark the source `read` on that direction; traffic +1 |
 | `claim.recorded` | Claim node, with an edge to its source. `corroborates` / `contradicts` become edges between claims. |
+| `claim.linked` | Adds a `corroborates` / `contradicts` edge between claims (it's the same as setting the field on `claim_id`); show `reason` on hover; recompute evidence status |
 | `direction.finished` | Direction → `done`, with a stop badge from `reason`. `dropped_by_user` → greyed and crossed out. |
 | `budget.hit` | ⏱ marker on the direction |
 | `steer.applied` | Steer marker on the direction plus a trace entry; stats "steered N×" +1 |
@@ -420,5 +475,6 @@ asyncio.create_task(researcher_graph.ainvoke(
 | The provider rejects a `HumanMessage` injected after tool results | Same fallback: deliver the instruction only via the tool result content |
 | A steer arrives while the writer is running | Queue it. The writer re-runs once the new work is idle, and the higher version wins. |
 | Beam is slow, and the writer now runs after every steer | Show `synthesis.started` in the UI; fall back to `RESEARCHER_MODEL` behind a flag |
-| Tavily rate limits or credits | Cache by query and URL; budgets of 4 + 4 per direction, +3 + 3 per dig |
+| Tavily rate limits or credits | Cache by query and URL; budgets of 5 + 5 per direction, +3 + 3 per dig; `auto_read` fetches add up to one extract per unread quoted source |
+| Token Factory 60 RPM default cap | `max_retries=6` with backoff on 429; a run makes about 40–80 model calls in 40–55 s |
 | Wi-Fi | Replay a recorded run (including its steers) through the same SSE endpoint |

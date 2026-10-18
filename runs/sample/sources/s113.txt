@@ -1,0 +1,56 @@
+# The Race to the World’s First Fusion Power Plant
+
+### Who is really going to win the race?
+
+[Michael Heumann](https://substack.com/@mikeheumann)
+
+Last week, [Helion Energy](http://www.helionenergy.com) put out a [press release](https://www.helionenergy.com/articles/starting-to-build-the-worlds-first-fusion-power-plant-in-malaga-wa/) stating that the company was “starting to build the world’s first fusion power plant in Malaga, WA”. Per their press release, Helion Energy has “[begun initial earthwork and construction](https://www.helionenergy.com/articles/helion-secures-land-and-begins-building-site-of-worlds-first-fusion-power-plant/) on the site of Orion”, the model name for their first production fusion machine. Orion will be Helion’s 8th generation plant, following [Polaris](https://www.helionenergy.com/polaris/), which Helion expects to be the first fusion machine to produce electricity. Orion will be used to provide energy to Microsoft under the agreement they signed in 2023. The original agreement with Microsoft was followed by a Mitigated Determination of Non-Significance (MDNS) through Washington’s comprehensive environmental review process, SEPA. Helion has also been engaged with local and state stakeholders (government agencies, Tribal Nations, and the general public) in preparation for siting and permitting decisions.
+
+## What Does “The World’s First Fusion Power Plant” Really Mean?
+
+Not to be pedantic, but meanings are everything, right? Let’s start with the phrase “fusion power plant”. Clearly, this means an installation that produces electricity from the process of fusion. However, let’s look at what it potentially doesn’t mean:
+
+* The statement doesn’t necessarily mean an installation that produces net positive electricity (i.e., produces more electricity than it uses to produce it), though we can probably assume that Microsoft doesn’t want to pay more for electricity than the going market rate, so it is likely that the Orion plant will produce net electricity.
+* The statement doesn’t necessarily mean an installation that produces electricity economically. Specifically, the Orion plant may not be profitable for Helion, even in the short term and only considering operational costs such as fuel and operational manpower. Moreover, it may not meet the lifetime expectations of a commercial power plant which tend to be thirty (30) years (more or less). If this is the case, Helion’s plant will be a “FOAK” (first-of-a-kind) installation that is more of a demonstrator than a commercially viable solution.
+
+While Helion did not claim that the Orion fusion machine design represented a commercially viable production design, understanding what the press release probably represents is important to understanding how far we are from having commercially viable fusion electricity on the grid.
+
+## Other Potential Issues With Helion’s Approach
+
+Assuming that Helion is going to hit the 2028 date in their agreement to provide electricity to Microsoft, they have roughly three years and five months to get Orion online. During this timeframe, Helion also has to get Polaris (the predecessor to Orion) online, which includes producing electricity via its inductive energy recovery approach (a very cool approach which I hope can be effective, but is yet unproven). There is also the matter of scaling up the power output from Polaris (whose capacity is not stated) to Orion’s target power of 50 MWe.
+
+Additionally, Orion’s “production” [fuel will be](https://www.helionenergy.com/articles/explaining-helions-fusion-fuel-choice-d-he-3/#:~:text=Helion%20has%20used%2C%20or%20will,heat%20them%20to%20plasma%20conditions.) deuterium and helium-3 (D-He3). The great thing about Dt-He3 has the advantage that most of the energy from the fusion reaction will be contained in charged particles. This maximizes the energy recovered from its fusion machine by the inductive energy recovery approach. However, the D-He3 reaction requires significantly higher temperatures than the deuterium-tritium (D-T) reaction, which will be what Polaris is first “fired up” with. While Polaris is nearing completion, component installation is still ongoing, and the date for completion has not been stated (it was originally targeted for completion in 2024). So while Helion seems to be proceeding towards a real solution, it seems unlikely that it will start generating electricity by 2028, even as a FOAK fusion power plant.
+
+## How Does This Compare With Other Fusion Energy Machines?
+
+The company farthest along (beside Helion) is probably [Commonwealth Fusion](http://www.cfs.energy) (CFS). Like Helion Energy, CFS is also taking a two-step approach to achieving commercial fusion. The first step in this process is the construction and operation of SPARC (“Smallest-Possible ARC), a machine that CFS expects to be operational in 2027. SPARC is expected to achieve net energy generation (Q>1), and is being built at CFS’s headquarters in Devon, MA (I toured the facility in March 2025). SPARC is not designed to produce electricity, but to produce thermal energy.
+
+SPARC will be followed by ARC, which CFS is starting to build in Chesterfield County, VA. CFS expects ARC to be online in the early 2030s, and will have an electrical generation capacity of 400 MW, about 8X that of Helion’s Orion. ARC is also designed as a commercial fusion machine that can be mass-produced. Note that CFS calls ARC the “first grid-scale” fusion machine.
+
+## Conclusion: We All Benefit, Regardless of Which One is “First”
+
+One can debate (and create a lot of copy) on what it means to be “first” in terms of fusion energy. In the end, while this will matter to the companies (and their investors), it does not lessen the value of either approach to the world’s population, all of whom need a whole lot more clean electricity. By 2050, the world is [expected to need](https://www.mckinsey.com/industries/oil-and-gas/our-insights/global-energy-perspective-2023-power-outlook) two to three times as much electricity as it needs today. Generating this from fossil fuels would just increase the impact of climate change, and nuclear fission has a very large number of challenges to overcome to grow even modestly from its current 10% share. Renewables clearly have a place in the overall electricity power scheme, but the need for electricity storage to provide 24/7/365 electricity both complicates their use, not to mention significantly increasing its cost. So, whether Helion, CFS, Pacific Fusion, or any one of the roughly two dozen companies working on fusion today wins the “first” race, sooner is better for everyone.
+
+---
+
+Join us August 12 for *[Fusion 2035: The 10-Year Shot Clock](https://us06web.zoom.us/webinar/register/2617519898989/WN_GyY-W6WETWWoFqjtD1RRjQ)*, a half-day webinar featuring leaders from across the fusion ecosystem.
+
+[Register Now](https://us06web.zoom.us/webinar/register/2617519898989/WN_GyY-W6WETWWoFqjtD1RRjQ)
+
+---
+
+The Fusion Report: The Business of Fusion Energy is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber.
+
+#### Discussion about this post
+
+No posts
+
+### Ready for more?
+
+© 2026 The Fusion Report (a re-grate-it, inc. brand) · [Privacy](https://substack.com/privacy) ∙ [Terms](https://substack.com/tos) ∙ [Collection notice](https://substack.com/ccpa#personal-data-collected)
+
+[Start your Substack](https://substack.com/signup?utm_source=substack&utm_medium=web&utm_content=footer)[Get the app](https://substack.com/app/app-store-redirect?utm_campaign=app-marketing&utm_content=web-footer-button)
+
+[Substack](https://substack.com) is the home for great culture
+
+ 

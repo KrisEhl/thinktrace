@@ -1,0 +1,36 @@
+[Skip to content](#main)
+
+
+[![Fusion Industry Association](https://www.fusionindustryassociation.org/wp-content/uploads/2023/03/fia_logo.jpg)](https://www.fusionindustryassociation.org/)
+
+[BECOME A MEMBER](/membership/)
+
+[![Fusion Industry Association](https://www.fusionindustryassociation.org/wp-content/uploads/2023/03/fia_logo.jpg)](https://www.fusionindustryassociation.org/)
+
+![](https://www.fusionindustryassociation.org/wp-content/uploads/2026/02/steven-abraham-BdgWxoO-jbc-unsplash-scaled.jpg)
+
+# The Path to Fusion Energy Regulations in the United States
+
+[Ensuring Regulatory Certainty](https://www.fusionindustryassociation.org/category/ensuring-regulatory-certainty/), [From the FIA](https://www.fusionindustryassociation.org/category/from-the-fia/)
+
+In the United States, the U.S. Nuclear Regulatory Commission is the agency that oversees all atomic energy, “so as to promote world peace, improve the general welfare, increase the standard of living, and strengthen free competition in private enterprise” under the Atomic Energy Act of 1954.
+
+In 2009, the NRC formally asserted that it would have jurisdiction over commercial fusion machines as form of atomic energy, but directed staff to delay regulatory development until fusion’s commercial path was clearer. In 2019, when the Nuclear Energy Innovation and Modernization Act (NEIMA) was signed into law, Congress tasked the NRC to create a regulatory framework for fusion by December 31, 2027.
+
+Since the passage of NEIMA, the FIA and the NRC have worked together to guarantee fusion is regulated appropriately, ensuring public health and safety while enabling the industry to grow. The timeline below outlines the key moments and decisions since the passage of NEIMA that ensure fusion is regulated in a appropriate regime, separate from nuclear fission.
+
+*This page was updated on May 21, 2026.*
+
+[![facebook](https://www.fusionindustryassociation.org/wp-content/plugins/ultimate-social-media-icons/images/responsive-icon/facebook.svg)Share on Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.fusionindustryassociation.org%2Fthe-path-to-fusion-energy-regulations-in-the-united-states%2F)[![Twitter](https://www.fusionindustryassociation.org/wp-content/plugins/ultimate-social-media-icons/images/responsive-icon/Twitter.svg)Tweet](https://x.com/intent/post?text=Hey%2C+check+out+this+cool+site+I+found%3A+www.yourname.com+%23Topic+via%40my_twitter_name&url=https%3A%2F%2Fwww.fusionindustryassociation.org%2Fthe-path-to-fusion-energy-regulations-in-the-united-states%2F)
+
+### Common Fusion Approaches
+
+**Magnetic confinement:** Plasma is heated to 100 million °C or more, then squeezed and held in place by strong magnetic fields, allowing many fusion reactions to occur. (Example: tokamaks, stellarators)
+
+**Inertial confinement:** Tiny fuel pellets are struck by powerful lasers. The outer layer explodes outward, compressing the core to fusion conditions for a few nanoseconds, producing a brief but intense pulse of energy from each pellet. (Example: National Ignition Facility)
+
+**Hybrid systems:** Combine compression (e.g., from lasers, plasma pistons, or mechanical impact) with moderate magnetic fields to reduce energy losses and improve confinement.
+
+**Electrostatic fusion:** Uses high electric potentials to accelerate ions toward a central reaction zone, causing them to collide at high energies and fuse. The ions are guided and confined by electric fields rather than magnets, creating a compact environment for fusion reactions.
+
+ 

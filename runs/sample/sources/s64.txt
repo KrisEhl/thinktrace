@@ -1,0 +1,80 @@
+[Skip to content](#content)
+
+
+![Conceptual illustration of General Fusion's fusion power plant](https://generalfusion.com/wp-content/uploads/2026/06/fusion_power_plant_cropped_2-scaled.png)
+
+Path to Commercialization
+
+Built from the ground up for a practical power plant designed to deliver carbon-free energy to the grid.
+
+Illustration shown for conceptual purposes only and not representative of the final commercial design
+
+**How General Fusion is Engineering the Path to Commercial Fusion**
+
+Hear how our technology, team, and step-by-step commercialization program are advancing practical fusion power from operating demonstration machine to power plant.
+
+![](https://generalfusion.com/wp-content/uploads/2026/06/Screenshot-2026-06-29-110734.png)
+
+Certain statements in this video are forward-looking statements under U.S. Securities laws. These include statements regarding the Company’s ability to commercialize MTF or other fusion technology, expected timelines, future demand for fusion energy, the LM26 program, financing needs, and future operational or financial results. Forward-looking statements are based on assumptions and involve risks and uncertainties, many outside the Company’s control. Actual results may differ materially, and viewers should not rely on these statements as guarantees, assurances, or predictions of future performance. Important information regarding these statements, including the full cautionary disclosure, is available at <https://generalfusion.com/disclosures/>.
+
+![Angled view of LM26, General Fusion's large-scale Magnetized Target Fusion demonstration machine](https://generalfusion.com/wp-content/uploads/2026/03/4758b8f5934f0e4b9e03e01e3e558c9f3a457e77-scaled.jpg)
+
+LM26
+
+Large-Scale Demonstration in Operation
+
+Lawson Machine 26 (LM26) is General Fusion’s large-scale MTF demonstration machine, built and operating in Vancouver.
+
+Designed, built, and assembled in less than 2 years, the machine is designed to advance through key technical milestones—including 1 keV, 10 keV, and the Lawson criterion—that define progress toward commercial fusion. General Fusion has achieved plasma heating over 1 keV, approximately 12 million degrees Celsius, and is advancing toward the remaining milestones.
+
+For General Fusion’s approach, achieving the Lawson Criterion means simultaneously demonstrating, using hydrogen fuel, the temperature, density, and energy confinement time that together correspond to the operating conditions required for D-T plasma to achieve fusion power in excess of the rate of heat loss.
+
+[Explore LM26](/path-to-commercialization/lm26-program/)
+
+![](https://generalfusion.com/wp-content/uploads/2026/05/Section-6-scaled.jpg)
+
+![Diagram of General Fusion's Magnetized Target Fusion system showing energy recovery, tritium extraction, and heat exchange processes](https://generalfusion.com/wp-content/uploads/2026/06/Commercial-Schematic.png)
+
+From Demonstration to Commercial Systems
+
+As the LM26 program progresses, General Fusion expects to transition into its commercialization program, potentially as early as 2027, by advancing our engineering efforts to design and demonstrate key commercial systems and components, including seals, valves, and heat exchange systems. Completion of this commercial systems demonstration program is expected to support final plant design and the construction of a first-of-a-kind facility, with initial operations targeted around 2035. This potential pathway is enabled by General Fusion’s engineering-driven approach and the commercialization advantages of MTF.
+
+Commercial system validation will include:
+
+* High repetition rate for key components and systems
+* Key liquid metal systems and components
+* Key balance of plant systems
+
+These steps support the development of a first-of-a-kind fusion plant and the broader transition to commercial deployment.
+
+![Conceptual rendering of the interior of a General Fusion fusion power plant](https://generalfusion.com/wp-content/uploads/2026/04/GFFDP-Planning-Interior_Fusion-Island.jpg)
+
+Illustration shown for conceptual purposes only and not representative of the final commercial design
+
+First-of-a-Kind Plant
+
+General Fusion is targeting operations of our first-of-a-kind plant by approximately 2035, aiming to achieve engineering breakeven with an integrated, practical commercial-scale MTF machine.
+
+**B****road****Power and Industrial****Applicatio****ns** 
+
+General Fusion’s potential customers and early adopters include electric utilities, independent power producers, state-owned enterprises, energy developers, and industrial companies seeking firm, low-carbon power.  
+
+Target applications include: 
+
+* Grid-scale electricity generation
+* Industrial heat and steam
+* Power supply for artificial intelligence
+* Data centers
+* Mission-critical operations, including defense and remote installations.
+
+**Regulatory & Siting Simpli****f****ication** 
+
+Fusion power systems are also expected to face reduced regulatory and siting complexity compared to conventional nuclear fission facilities, supporting greater flexibility in project development. The expected radiation profile for a fusion power plant is also significantly improved compared to a fission plant, as fusion power does not generate either high-level or long-lived radioactive waste requiring permanent geological disposal, unlike nuclear fission and SMR technologies. 
+
+**Dependable****, Compact****Baseload Power** 
+
+Unlike wind and solar, fusion is designed to provide continuous, dispatchable baseload electricity that is not dependent on weather or time-of-day conditions. Fusion power facilities are also expected to require significantly less land per unit of electricity produced than many renewable generation sources, helping reduce land-use constraints, transmission requirements, and siting challenges.
+
+© 2026 General Fusion
+
+ 
