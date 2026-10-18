@@ -17,7 +17,8 @@ interface Ui {
   dockW: number;
   source: { source_id: string; claim_id?: string } | null;
   follow: boolean; // auto-fit the graph while it grows, until the user pans/zooms
-  highlightClaim: string | null;
+  highlightClaim: string | null; // the claim being traced (provenance chain)
+  traceOnly: boolean; // activity layer shows only the traced path
   notice: string | null; // short message in the stats bar (e.g. why a steer was refused)
 }
 
@@ -78,6 +79,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       source: null,
       follow: true,
       highlightClaim: null,
+      traceOnly: true,
       notice: null,
       ...saved,
     },

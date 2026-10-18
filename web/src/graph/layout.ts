@@ -1,7 +1,7 @@
 import type { Edge, Node } from "@xyflow/react";
 import type { GraphNode } from "../api/types";
 import type { RunState } from "../state/reducer";
-import { children, claimsOfNode, decisionsOfNode } from "../state/selectors";
+import { children, claimsOfNode, decisionsOfNode, provenance } from "../state/selectors";
 
 // Layers: the graph shows ONE layer at a time, centred on `focusId`.
 //   focus = question / dimension -> radial: focus in the middle, its children on a ring, grandchildren outside.
@@ -20,7 +20,14 @@ const edge = (id: string, source: string, target: string, extra: Partial<Edge> =
   ...extra,
 });
 
-function radial(st: RunState, focusId: string): LayerResult {
+export interface Trace {
+  claim_id: string | null;
+  only: boolean;
+}
+
+function radial(st: RunState, focusId: string, trace?: Trace): LayerResult {
+  // While tracing, mark the direction that holds the traced claim.
+  const tracedDir = trace?.claim_id ? st.claims[trace.claim_id]?.node_id : undefined;
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const put = (n: GraphNode, cx: number, cy: number, depth: number) => {
@@ -31,6 +38,7 @@ function radial(st: RunState, focusId: string): LayerResult {
       position: { x: cx - size / 2, y: cy - size / 2 },
       data: { id: n.id, size, depth },
       draggable: true,
+      className: tracedDir && n.id === tracedDir ? "on-path" : undefined,
     });
   };
   const focus = st.nodes[focusId];
@@ -57,9 +65,9 @@ function radial(st: RunState, focusId: string): LayerResult {
 }
 
 const COL = { decision: 0, source: 310, claim: 610 };
-const ROW = 112;
+const ROW = 140; // taller than the tallest decision card, so cards never overlap
 
-function activity(st: RunState, focusId: string): LayerResult {
+function activity(st: RunState, focusId: string, trace?: Trace): LayerResult {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const focus = st.nodes[focusId];
@@ -72,8 +80,14 @@ function activity(st: RunState, focusId: string): LayerResult {
     data: { id: focus.id, size, depth: 0 },
   });
 
-  const decisions = decisionsOfNode(st, focusId);
-  const claims = claimsOfNode(st, focusId);
+  const prov = trace?.claim_id ? provenance(st, trace.claim_id) : null;
+  const tracing = prov && prov.claim.node_id === focusId ? prov : null;
+  const onPath = new Set(tracing?.path ?? []);
+  const linkedHere = new Set(tracing ? tracing.links.map((l) => l.other).filter((id) => st.claims[id]?.node_id === focusId) : []);
+  // "Only this trace": fold the layer down to the path (+ claims linked to the traced one). Otherwise dim the rest.
+  const fold = !!tracing && trace!.only;
+  const decisions = decisionsOfNode(st, focusId).filter((d) => !fold || onPath.has(`dec:${d.id}`));
+  const claims = claimsOfNode(st, focusId).filter((c) => !fold || onPath.has(`clm:${c.id}`) || linkedHere.has(c.id));
   // Show the sources that matter here: those with claims, plus those the agent chose to read.
   const srcIds = [...new Set([...claims.map((c) => c.source_id), ...decisions.filter((d) => d.action === "read" && d.source_id).map((d) => d.source_id!)])].filter(
     (sid) => st.sources[sid],
@@ -102,7 +116,7 @@ function activity(st: RunState, focusId: string): LayerResult {
     const want = p >= 0 ? p * ROW : nextSrc;
     const y = Math.max(want, nextSrc);
     rowOfSource[sid] = y;
-    nextSrc = y + 92;
+    nextSrc = y + 128;
     nodes.push({ id: `src:${sid}`, type: "source", position: { x: COL.source, y }, data: { id: sid } });
     const search = decisions.filter((d) => d.action === "search" && d.results?.includes(sid)).slice(0, 1);
     const reads = decisions.filter((d) => d.action === "read" && d.source_id === sid);
@@ -114,7 +128,7 @@ function activity(st: RunState, focusId: string): LayerResult {
   const bySource = [...claims].sort((a, b) => (rowOfSource[a.source_id] ?? 0) - (rowOfSource[b.source_id] ?? 0));
   bySource.forEach((c) => {
     const y = Math.max(rowOfSource[c.source_id] ?? 0, nextClaim);
-    nextClaim = y + 100;
+    nextClaim = y + 132;
     nodes.push({ id: `clm:${c.id}`, type: "claim", position: { x: COL.claim, y }, data: { id: c.id } });
     if (rowOfSource[c.source_id] !== undefined) edges.push(edge(`e-sc-${c.id}`, `src:${c.source_id}`, `clm:${c.id}`));
   });
@@ -125,6 +139,10 @@ function activity(st: RunState, focusId: string): LayerResult {
       if (here.has(l.target)) edges.push(edge(`e-cl-${c.id}-${i}`, `clm:${c.id}`, `clm:${l.target}`, { className: l.relation }));
     }),
   );
+  if (tracing) {
+    for (const n of nodes) n.className = onPath.has(n.id) ? "on-path" : linkedHere.has(n.id.replace(/^clm:/, "")) ? "linked" : "dim";
+    for (const e of edges) if (onPath.has(e.source) && onPath.has(e.target)) e.className = `${e.className ?? ""} path`;
+  }
   // Follow-up branches grown from this direction sit to the right and can be drilled into.
   children(st, focusId).forEach((k, i) => {
     const ks = gbSize(k);
@@ -139,8 +157,8 @@ function activity(st: RunState, focusId: string): LayerResult {
   return { nodes, edges };
 }
 
-export function layoutLayer(st: RunState, focusId: string, _selectedId?: string | null): LayerResult {
+export function layoutLayer(st: RunState, focusId: string, trace?: Trace): LayerResult {
   const focus = st.nodes[focusId];
   if (!focus) return { nodes: [], edges: [] };
-  return focus.kind === "direction" ? activity(st, focusId) : radial(st, focusId);
+  return focus.kind === "direction" ? activity(st, focusId, trace) : radial(st, focusId, trace);
 }

@@ -145,3 +145,20 @@ p.changed { background: #f3e27a1f; border-left: 3px solid var(--note); padding-l
 .react-flow__edge.contradicts .react-flow__edge-path { stroke: var(--red); stroke-dasharray: 5 4; }
 .react-flow__edge.corroborates .react-flow__edge-path { stroke: var(--green); }
 .react-flow__edge.read .react-flow__edge-path { stroke: #9b7fe8; }
+
+/* provenance trace */
+.react-flow__node.dim { opacity: 0.22; }
+.react-flow__node.on-path .act, .react-flow__node.on-path .gb { box-shadow: 0 0 0 3px var(--note); }
+.react-flow__node.linked .act { box-shadow: 0 0 0 2px var(--accent); }
+.react-flow__edge.path .react-flow__edge-path { stroke: var(--note) !important; stroke-width: 3; stroke-dasharray: none; }
+.trace-chip { display: inline-flex; gap: 4px; align-items: center; margin-left: 8px; color: var(--note); font-size: 12px; }
+.tracecard { border: 1px solid var(--note); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; background: #f3e27a0d; }
+.tracecard-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.chain { list-style: none; margin: 0; padding: 0 0 0 10px; border-left: 2px solid #f3e27a66; }
+.chain .step { position: relative; padding: 4px 0 6px 8px; font-size: 12px; }
+.chain .step::before { content: ""; position: absolute; left: -16px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--note); }
+.step-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.chain details { margin-top: 2px; color: var(--muted); }
+p.traced { outline: 2px solid var(--note); outline-offset: 2px; border-radius: 3px; }
+.crumbs { flex-wrap: nowrap; white-space: nowrap; max-width: calc(100% - 20px); overflow: hidden; }
+.crumbs button { white-space: nowrap; }

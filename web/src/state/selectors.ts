@@ -86,3 +86,31 @@ export const answerSentencesCiting = (st: RunState, claim_id: string) =>
   st.answer.map((s, i) => ({ s, i })).filter(({ s }) => s.claim_ids.includes(claim_id));
 
 export const claimNumber = (id: string) => id.replace(/^c/, "");
+
+/**
+ * Provenance chain of one claim, from the answer down to the plan:
+ * answer sentences -> claim -> quote -> source -> read / search decision (+ the agent's reason) -> direction -> plan reason.
+ */
+export function provenance(st: RunState, claim_id: string) {
+  const claim = st.claims[claim_id];
+  if (!claim) return null;
+  const decs = decisionsOfNode(st, claim.node_id);
+  const read = decs.find((d) => d.action === "read" && d.source_id === claim.source_id);
+  const search = decs.find((d) => d.action === "search" && d.results?.includes(claim.source_id));
+  const incoming = Object.values(st.claims).flatMap((o) =>
+    (o.links ?? []).filter((l) => l.target === claim.id).map((l) => ({ ...l, other: o.id })),
+  );
+  const outgoing = (claim.links ?? []).map((l) => ({ ...l, other: l.target }));
+  return {
+    claim,
+    node: st.nodes[claim.node_id],
+    source: st.sources[claim.source_id],
+    read,
+    search,
+    sentences: answerSentencesCiting(st, claim_id),
+    links: [...outgoing, ...incoming],
+    usage: claimUsage(st, claim),
+    /** React Flow ids of the path in the direction's activity layer. */
+    path: [claim.node_id, search && `dec:${search.id}`, read && `dec:${read.id}`, `src:${claim.source_id}`, `clm:${claim.id}`].filter(Boolean) as string[],
+  };
+}

@@ -5,6 +5,7 @@ import { useStore, type DockTab } from "../state/store";
 import {
   answerSentencesCiting,
   children,
+  provenance,
   claimNumber,
   claimsOfNode,
   claimsOfSource,
@@ -179,6 +180,7 @@ function NodePanel() {
 
 function AnswerPanel() {
   const run = useStore((s) => s.run);
+  const traced = useStore((s) => s.ui.highlightClaim);
   if (run.answer.length === 0) return <p className="muted pad">{run.status === "idle" ? "Run a question first." : "The answer is written after the research stops."}</p>;
   const unused = Object.values(run.claims).filter((c) => claimUsage(run, c).state === "unused");
   return (
@@ -190,7 +192,7 @@ function AnswerPanel() {
         {run.answer_meta.changed.length > 0 && ` Highlighted: changed since the previous version.`}
       </p>
       {run.answer.map((s, i) => (
-        <p key={i} className={`${s.claim_ids.length === 0 ? "gap" : ""} ${run.answer_meta.changed.some((c) => c.includes(s.text.slice(0, 40))) ? "changed" : ""}`}>
+        <p key={i} className={`${s.claim_ids.length === 0 ? "gap" : ""} ${traced && s.claim_ids.includes(traced) ? "traced" : ""} ${run.answer_meta.changed.some((c) => c.includes(s.text.slice(0, 40))) ? "changed" : ""}`}>
           {s.text} {s.claim_ids.map((c) => <Cite key={c} id={c} />)}
         </p>
       ))}
@@ -265,6 +267,7 @@ function SourceViewer() {
 
   return (
     <div className="pad">
+      {target.claim_id && <TraceCard claim_id={target.claim_id} />}
       <h3>{src.title}</h3>
       <div className="muted">
         <a href={src.url} target="_blank" rel="noreferrer">{src.domain}</a> · origin <code>{src.origin_id}</code>
@@ -291,6 +294,96 @@ function SourceViewer() {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/* ---------- Provenance chain ---------- */
+
+function TraceCard({ claim_id }: { claim_id: string }) {
+  const run = useStore((s) => s.run);
+  const { drill, set, openClaim } = useStore.getState();
+  const p = provenance(run, claim_id);
+  if (!p) return null;
+  const { claim: c, node, source, read, search, sentences, links, usage } = p;
+  const showPath = () => {
+    drill(c.node_id);
+    set({ highlightClaim: c.id, traceOnly: true, follow: true });
+  };
+  const Step = ({ k, label, children }: { k: string; label: string; children: React.ReactNode }) => (
+    <li className={`step step-${k}`}>
+      <span className="step-label">{label}</span>
+      <div>{children}</div>
+    </li>
+  );
+  return (
+    <div className="tracecard">
+      <div className="tracecard-head">
+        <b>Where [c{claimNumber(c.id)}] comes from</b>
+        <button className="ghost" onClick={showPath}>show path in graph</button>
+      </div>
+      <ol className="chain">
+        <Step k="answer" label="Answer">
+          {sentences.length ? (
+            sentences.map(({ s, i }) => (
+              <div key={i}>
+                sentence {i + 1}: “{s.text.length > 140 ? s.text.slice(0, 139) + "…" : s.text}”
+              </div>
+            ))
+          ) : (
+            <span className="muted">not cited: {usage.reason}</span>
+          )}
+        </Step>
+        <Step k="claim" label="Claim">
+          {c.text} <span className={`chip tone-${c.confidence === 0 ? "grey" : c.confidence >= 0.75 ? "green" : c.confidence >= 0.5 ? "orange" : "red"}`}>{c.origin_ids.length} origin{c.origin_ids.length === 1 ? "" : "s"}</span>
+        </Step>
+        <Step k="quote" label="Quote">
+          “{c.quote.length > 160 ? c.quote.slice(0, 159) + "…" : c.quote}”
+          <div className="muted">{matchLabel(c)}{c.span ? `, chars ${c.span[0]}–${c.span[1]}` : ""}</div>
+        </Step>
+        <Step k="source" label="Source">
+          {source ? (
+            <>
+              {source.domain} · {source.title}{" "}
+              <a href={source.url} target="_blank" rel="noreferrer">original ↗</a>
+            </>
+          ) : (
+            c.source_id
+          )}
+        </Step>
+        {read && (
+          <Step k="read" label="Read">
+            the agent opened this page because <i>{read.why}</i>
+          </Step>
+        )}
+        <Step k="search" label="Found by">
+          {search ? (
+            <>
+              search “{search.query}” because <i>{search.why}</i>
+              {search.reflection && <details><summary className="muted">model reasoning</summary>{search.reflection}</details>}
+            </>
+          ) : (
+            <span className="muted">no search in this direction returned it (read directly or found by another direction)</span>
+          )}
+        </Step>
+        <Step k="direction" label="Direction">
+          {node?.title ?? node?.label}
+          {node?.why && <div className="muted">planned because {node.why}</div>}
+          {run.stop_reasons[c.node_id] && <div className="muted">stopped: {run.stop_reasons[c.node_id]}</div>}
+        </Step>
+      </ol>
+      {links.length > 0 && (
+        <div className="muted">
+          {links.map((l, i) => (
+            <div key={i} className={`link-${l.relation}`}>
+              {l.relation === "corroborates" ? "↔ corroborated with" : "⚡ contradicted by / contradicts"}{" "}
+              <button className="cite" onClick={() => openClaim(l.other)}>[c{claimNumber(l.other)}]</button>
+              {run.claims[l.other] && run.claims[l.other].node_id !== c.node_id ? ` (in ${run.nodes[run.claims[l.other].node_id]?.label})` : ""}
+              {l.reason ? `: ${l.reason}` : ""}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

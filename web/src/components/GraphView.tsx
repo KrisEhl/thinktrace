@@ -10,15 +10,18 @@ const ZOOM_OUT_AT = 0.35;
 
 function Inner() {
   const run = useStore((s) => s.run);
-  const { focusId, follow } = useStore((s) => s.ui);
+  const { focusId, follow, highlightClaim, traceOnly } = useStore((s) => s.ui);
   const { select, drill, up, set } = useStore.getState();
   const rf = useReactFlow();
   const programmatic = useRef(false);
 
-  const { nodes, edges } = useMemo(() => layoutLayer(run, focusId), [run, focusId]);
+  const { nodes, edges } = useMemo(
+    () => layoutLayer(run, focusId, { claim_id: highlightClaim, only: traceOnly }),
+    [run, focusId, highlightClaim, traceOnly],
+  );
 
   // Fit when the layer changes, and while the graph grows (until the user pans or zooms by hand).
-  const sig = nodes.length + ":" + focusId;
+  const sig = nodes.length + ":" + focusId + ":" + (highlightClaim ?? "") + traceOnly;
   useEffect(() => {
     if (!follow || !nodes.length) return;
     programmatic.current = true;
@@ -88,8 +91,9 @@ function Inner() {
 
 export function GraphView() {
   const run = useStore((s) => s.run);
-  const { focusId, follow } = useStore((s) => s.ui);
+  const { focusId, follow, highlightClaim, traceOnly } = useStore((s) => s.ui);
   const { up, set, drill } = useStore.getState();
+  const tracedHere = highlightClaim && run.claims[highlightClaim]?.node_id === focusId;
 
   // breadcrumb: root > ... > focus
   const crumbs: string[] = [];
@@ -118,12 +122,25 @@ export function GraphView() {
           <span key={id}>
             {i > 0 && " › "}
             <button onClick={() => drill(id)} disabled={id === focusId}>
-              {run.nodes[id]?.label ?? id}
+              {(run.nodes[id]?.label ?? id).length > 26 ? (run.nodes[id]?.label ?? id).slice(0, 25) + "…" : run.nodes[id]?.label ?? id}
             </button>
           </span>
         ))}
         {run.nodes[focusId]?.parent_id && <button className="ghost" onClick={up}>↑ up</button>}
         {!follow && <button className="ghost" onClick={() => set({ follow: true })}>⤢ refit</button>}
+        {highlightClaim && run.claims[highlightClaim] && (
+          <span className="trace-chip">
+            Tracing [{highlightClaim}]
+            {tracedHere ? (
+              <button className="ghost" onClick={() => set({ traceOnly: !traceOnly, follow: true })}>
+                {traceOnly ? "show all activity" : "only this trace"}
+              </button>
+            ) : (
+              <button className="ghost" onClick={() => drill(run.claims[highlightClaim].node_id)}>go to path</button>
+            )}
+            <button className="ghost" onClick={() => set({ highlightClaim: null, follow: true })} title="Stop tracing">✕</button>
+          </span>
+        )}
       </div>
       <div className="legend">
         <i className="dot green" /> ≥0.75 <i className="dot orange" /> 0.5–0.75 <i className="dot red" /> &lt;0.5 <i className="dot grey" /> unverified <i className="dot off" /> off
