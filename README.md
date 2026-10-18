@@ -13,6 +13,32 @@ Search Shooter is a deep research agent that you play. It runs on **Nebius Token
    - **REFUTED**: the block shatters.
 5. Press **R** for the verified report. Every citation links to its source, and every quote has a *jump to quote* link (a [text fragment](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment/Text_fragments)) that scrolls the source page to the exact sentence. You can export the run, including the full decision trace, as Markdown or JSON.
 
+## Screenshots
+
+**The agent builds the level.** The plan, each search (with the reason it was run) and each page read land as text platforms in a graph. The trace panel on the right streams the agent's decisions live.
+
+![Research in progress](docs/screenshots/research.png)
+
+**Shoot a claim apart and the fact-checker goes after it.** Hovering a claim lights up the citation lines back to its sources.
+
+![Fact-checker deployed](docs/screenshots/challenge.png)
+
+**Verdicts change the level.** C1 survived and turned to steel; C4 was weakened and replaced by the corrected claim. Each fact-check becomes its own node.
+
+![Upheld and weakened claims](docs/screenshots/verdicts.png)
+
+**The verified report.** Every citation links to its source, and every quote has a "jump to quote" link that opens the page scrolled to the exact sentence.
+
+![Report](docs/screenshots/report.png)
+
+**Pick the research model from the Token Factory catalog, then compare models on the leaderboard.** The rows tagged SAMPLE are seeded demo data, not measured results.
+
+| Start screen | Model leaderboard |
+| --- | --- |
+| ![Start screen](docs/screenshots/start.png) | ![Model leaderboard](docs/screenshots/models.png) |
+
+The game screenshots use the offline demo replay (real Wikipedia text, scripted agent).
+
 ## Global leaderboard
 
 Every claim the fact-checker **refutes** after you shoot it apart earns **+100 points**. Pick a name on the start screen and open the leaderboard with the 🏆 button, the in-game LEADERBOARD button, or **L**. Points are awarded on the server from the verdict, so they can't be faked from the browser. Each claim can only score once, and offline demo replays don't score. Scores are stored in `data/leaderboard.json`, so everyone playing on the same server shares one leaderboard.
