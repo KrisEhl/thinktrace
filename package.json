@@ -1,0 +1,15 @@
+{
+  "name": "search-shooter",
+  "version": "1.0.0",
+  "description": "A deep research agent you play: Token Factory + Tavily research turns into a destructible pixel level, and shooting a claim triggers an adversarial fact-check.",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=21.7" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "demo": "NEBIUS_API_KEY= TAVILY_API_KEY= node server.js",
+    "check": "node scripts/check.js"
+  },
+  "license": "MIT"
+}

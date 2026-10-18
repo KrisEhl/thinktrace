@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Search Shooter · break the answer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=block" rel="stylesheet" />
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='3' r='2.5' fill='white'/><path d='M8 5v6M8 11l-3 5M8 11l3 5M8 7l6-2' stroke='white' stroke-width='1.5'/></svg>" />
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+
+    <section id="start" class="overlay">
+      <div class="panel start-panel">
+        <h1>SEARCH<br />SHOOTER</h1>
+        <p class="tagline">Type a question. Break the answer.</p>
+        <p class="pitch">
+          A research agent plans, searches and reads the live web. Everything it finds rains down as a level made of
+          text. Its cited answer is the final level: shoot a claim apart and a fact-checker goes hunting for evidence that
+          breaks it. Claims that survive turn to steel.
+        </p>
+        <form id="ask">
+          <input id="question" autocomplete="off" maxlength="500" placeholder="Ask anything worth checking…" />
+          <button type="submit">GO</button>
+        </form>
+        <div id="examples" class="examples"></div>
+        <p id="mode" class="mode"></p>
+        <div class="controls">
+          <span><kbd>A</kbd><kbd>D</kbd> run</span>
+          <span><kbd>W</kbd>/<kbd>Space</kbd> jump · again to flip · hold to fly</span>
+          <span><kbd>S</kbd> drop</span>
+          <span><kbd>Click</kbd> shoot · <kbd>Right-click</kbd> grenade</span>
+          <span><kbd>1</kbd>-<kbd>4</kbd>/wheel weapons</span>
+          <span><kbd>T</kbd> trace · <kbd>R</kbd> report · <kbd>N</kbd> new search · <kbd>Esc</kbd> pause</span>
+        </div>
+        <p class="credits">Reasoning on Nebius Token Factory · Retrieval by Tavily</p>
+      </div>
+    </section>
+
+    <div id="hud" hidden>
+      <div class="hud-left">
+        <div id="score">0% DESTROYED</div>
+        <div id="claims-hud"></div>
+      </div>
+      <div id="status"><span class="spinner"></span><span id="status-text">Booting agent</span></div>
+      <div id="weapons"></div>
+      <div class="hud-buttons">
+        <button id="btn-new" title="New search (N)">NEW SEARCH</button>
+        <button id="btn-trace" title="Agent trace (T)">TRACE</button>
+        <button id="btn-report" title="Report (R)" disabled>REPORT</button>
+      </div>
+    </div>
+
+    <aside id="trace" hidden>
+      <header>
+        <span>AGENT TRACE</span>
+        <span id="trace-model"></span>
+      </header>
+      <ol id="trace-list"></ol>
+    </aside>
+
+    <div id="toasts"></div>
+
+    <section id="report" class="overlay" hidden>
+      <div class="panel report-panel">
+        <button class="close" data-close="report">×</button>
+        <div id="report-body"></div>
+      </div>
+    </section>
+
+    <section id="pause" class="overlay" hidden>
+      <div class="panel pause-panel">
+        <h2>PAUSED</h2>
+        <button data-action="resume">RESUME</button>
+        <button data-action="report">REPORT</button>
+        <button data-action="new">NEW SEARCH</button>
+      </div>
+    </section>
+
+    <script type="module" src="/js/main.js"></script>
+  </body>
+</html>
