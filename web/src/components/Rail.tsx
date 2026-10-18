@@ -55,7 +55,21 @@ export function Rail() {
                 {m.role === "user" ? `${circled(numberOf[m.id] ?? 0)} You` : "Agent"}
                 {node && m.node_id !== "q" && <span className="pin"> ⟶ pinned to “{node.label}”</span>}
               </div>
-              <div>{m.text}</div>
+              <div className={m.answer ? "muted" : ""}>{m.text}</div>
+              {m.answer && (
+                <div className="chat-answer">
+                  {m.answer.map((s, i) => (
+                    <p key={i}>
+                      {s.text}
+                      {s.claim_ids.map((c) => (
+                        <button key={c} className="cite" onClick={(e) => { e.stopPropagation(); openClaim(c); }}>
+                          [c{claimNumber(c)}]
+                        </button>
+                      ))}
+                    </p>
+                  ))}
+                </div>
+              )}
               {m.claim_ids && m.claim_ids.length > 0 && (
                 <div className="cites">
                   {m.claim_ids.map((c) => (

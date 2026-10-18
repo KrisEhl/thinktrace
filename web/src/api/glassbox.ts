@@ -75,10 +75,11 @@ export class Translator {
 
       case "plan.created":
       case "plan.updated":
-        for (const x of (d.directions ?? d.added ?? []) as { id: string; title: string; why?: string; queries?: string[]; from_dir?: string }[]) {
+        for (const x of (d.directions ?? d.added ?? []) as { id: string; title: string; why?: string; queries?: string[]; from_dir?: string; parent?: string }[]) {
           out.push({
             type: "direction_created",
-            node: node(x.id, "direction", ROOT, x.title, { title: x.title, why: x.why, queries: x.queries, from_dir: x.from_dir }),
+            // A follow-up grows from the node it was asked on.
+            node: node(x.id, "direction", x.parent ?? ROOT, x.title, { title: x.title, why: x.why, queries: x.queries, from_dir: x.from_dir }),
           });
         }
         if (d.fallback) out.push({ type: "message", message: { id: `m-plan-${e.seq}`, role: "agent", text: "The agent made no plan, so the system started the question as a single direction.", node_id: ROOT } });
@@ -185,11 +186,23 @@ export class Translator {
       case "steer.applied":
         // A steer is the user's input, so it also lands in the chat log and as a sticky note on that direction.
         this.steers++;
-        out.push({ type: "steer_applied", action: d.action === "redirect" ? "redirect" : "dig_deeper", node_id: d.dir, text: d.text ?? undefined });
+        out.push({ type: "steer_applied", action: d.action === "redirect" ? "redirect" : d.action === "follow_up" ? "chat" : "dig_deeper", node_id: d.dir, text: d.text ?? undefined });
         out.push({
           type: "message",
-          message: { id: `m-steer-${d.steer_id ?? e.seq}`, role: "user", node_id: d.dir ?? ROOT, text: d.action === "redirect" ? `Redirect ${d.dir}${d.text ? `, research instead: ${d.text}` : ""}` : `Dig deeper on ${d.dir}${d.text ? `: ${d.text}` : ""}` },
+          message: {
+            id: `m-steer-${d.steer_id ?? e.seq}`,
+            role: "user",
+            node_id: d.dir ?? ROOT,
+            text:
+              d.action === "follow_up"
+                ? d.text ?? ""
+                : d.action === "redirect"
+                  ? `Redirect ${d.dir}${d.text ? `, research instead: ${d.text}` : ""}`
+                  : `Dig deeper on ${d.dir}${d.text ? `: ${d.text}` : ""}`,
+          },
         });
+        if (d.action === "follow_up" && d.new_dir)
+          out.push({ type: "message", message: { id: `m-fu-${d.steer_id ?? e.seq}`, role: "agent", node_id: d.dir ?? ROOT, text: `Researching this as a new direction (${d.new_dir}); the answer is rewritten when it finishes.` } });
         break;
 
       case "steer.delivered":
@@ -215,8 +228,8 @@ export class Translator {
             id: `m-report-${this.reportVersion}`,
             role: "agent",
             node_id: ROOT,
-            claim_ids: cited.slice(0, 8),
-            text: `Answer v${this.reportVersion} is ready: ${answer.length} sentences citing ${cited.length} claims${d.dropped?.length ? `, ${d.dropped.length} uncited sentences dropped` : ""}${d.changed?.length ? `, ${d.changed.length} changed since v${this.reportVersion - 1}` : ""}. See the Answer tab.`,
+            text: `Answer v${this.reportVersion} · ${cited.length} claims cited${d.dropped?.length ? ` · ${d.dropped.length} uncited sentences dropped` : ""}${d.changed?.length ? ` · ${d.changed.length} changed since v${this.reportVersion - 1}` : ""}`,
+            answer,
           },
         });
         break;

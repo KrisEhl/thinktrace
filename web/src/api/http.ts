@@ -57,14 +57,16 @@ export function httpTransport(base: string, opts: { speed?: number } = {}): Tran
 
     async steer(run_id, req: SteerRequest) {
       // UI "deactivate" is the backend's "redirect" (drop the direction, optionally research something else).
-      const action = req.action === "deactivate" || req.action === "redirect" ? "redirect" : req.action === "dig_deeper" ? "dig_deeper" : null;
-      if (!action) throw new Error(`"${req.action}" is not supported by the backend yet (only redirect and dig deeper).`);
-      if (!req.node_id || req.node_id === "q") throw new Error("Select a direction to steer.");
+      // UI "chat" (a follow-up question) is the backend's "follow_up": researched as a new direction under the node.
+      const action =
+        req.action === "deactivate" || req.action === "redirect" ? "redirect" : req.action === "dig_deeper" ? "dig_deeper" : req.action === "chat" ? "follow_up" : null;
+      if (!action) throw new Error(`"${req.action}" is not supported by the backend yet (only redirect, dig deeper and follow-up questions).`);
+      if (action !== "follow_up" && (!req.node_id || req.node_id === "q")) throw new Error("Select a direction to steer.");
       await json(
         await fetch(`${base}/runs/${run_id}/steer`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, dir: req.node_id, text: req.text || null }),
+          body: JSON.stringify({ action, dir: req.node_id ?? "q", text: req.text || null }),
         }),
       );
     },

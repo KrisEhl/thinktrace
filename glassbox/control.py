@@ -307,6 +307,15 @@ class RunControl:
         claims: ClaimStore,
         sources: SourceStore,
     ) -> dict:
+        if action == "follow_up":
+            # A follow-up question asked on the root ("q") or on a direction: research it as a new direction.
+            if not text:
+                raise ValueError("a follow-up needs a question")
+            if dir_id != "q" and dir_id not in self.directions:
+                raise KeyError(f"unknown direction {dir_id}")
+            steer_id = f"st{next(self._steer_ids)}"
+            self.steers += 1
+            return self._follow_up(steer_id, dir_id, text)
         if dir_id not in self.directions:
             raise KeyError(f"unknown direction {dir_id}")
         steer_id = f"st{next(self._steer_ids)}"
@@ -317,6 +326,31 @@ class RunControl:
         if action == "dig_deeper":
             return self._dig(steer_id, direction, text, claims, sources)
         raise ValueError(f"unknown action {action}")
+
+    def _follow_up(self, steer_id: str, parent: str, text: str) -> dict:
+        new_dir = f"dn{next(self._new_dir_ids)}"
+        self.w.emit(
+            "steer.applied",
+            {"steer_id": steer_id, "action": "follow_up", "dir": parent, "text": text, "new_dir": new_dir},
+            dir=None if parent == "q" else parent,
+        )
+        new = self.ensure(new_dir, text[:120], Budget(self.cfg.budget.search, self.cfg.budget.extract))
+        new.why = "User follow-up" + ("" if parent == "q" else f" on [{parent}]")
+        new.status = "running"
+        self.w.emit(
+            "plan.updated",
+            {"added": [{"id": new_dir, "title": new.title, "why": new.why, "queries": [], "from_steer": steer_id, "parent": parent}]},
+            dir=new_dir,
+        )
+        self.w.emit(
+            "direction.started",
+            {"id": new_dir, "title": new.title, "task_description": f"[{new_dir}] {text}", "adhoc": False},
+            dir=new_dir,
+        )
+        if self.logger:
+            self.logger.started_dirs.add(new_dir)
+        self._spawn(new_dir, f"[{new_dir}] {text}")
+        return {"steer_id": steer_id, "new_dir": new_dir}
 
     def _redirect(self, steer_id: str, direction: Direction, text: str | None) -> dict:
         new_dir = f"dn{next(self._new_dir_ids)}" if text else None

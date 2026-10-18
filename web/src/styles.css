@@ -236,3 +236,6 @@ p.weakened { border-left: 3px solid var(--orange); padding-left: 6px; }
 /* confidence as a continuous green -> red gradient (no numbers) */
 .legend i.gradbar { display: inline-block; width: 72px; height: 9px; border-radius: 5px; margin: 0 4px; vertical-align: -1px;
   background: linear-gradient(90deg, hsl(140 62% 38%), hsl(72 62% 41%), hsl(38 62% 43%), hsl(4 62% 44%)); }
+
+/* the answer posted into the chat log */
+.chat-answer p { margin: 6px 0 0; line-height: 1.45; }

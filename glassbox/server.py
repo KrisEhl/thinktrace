@@ -9,7 +9,8 @@ Endpoints (the same paths the web dev server replays from runs/ without a backen
     GET  /runs/{id}/events?from=N&speed=S  SSE: the log from seq N (timed replay at S x speed when S > 0),
                                         then live events until run.finished
     GET  /runs/{id}/events.jsonl        the raw log
-    POST /runs/{id}/steer {action, dir, text}   404 unknown direction, 409 run not live
+    POST /runs/{id}/steer {action, dir, text}   redirect | dig_deeper | follow_up (dir "q" = the question);
+                                        404 unknown direction, 409 run not live
     POST /runs/{id}/close               finish a live run now
     GET  /runs/{id}/sources/{sid}
 
@@ -172,9 +173,9 @@ def steer(run_id: str, body: Steer) -> dict:
     run = live.get(run_id)
     if not run:
         raise HTTPException(409, "This run is not live (recorded or finished), so it cannot be steered.")
-    if body.action not in ("redirect", "dig_deeper"):
+    if body.action not in ("redirect", "dig_deeper", "follow_up"):
         raise HTTPException(400, f"unsupported action {body.action}")
-    if body.dir not in run.control.directions:
+    if body.dir not in run.control.directions and not (body.action == "follow_up" and body.dir == "q"):
         raise HTTPException(404, f"unknown direction {body.dir}")
     last_steer[run_id] = time.monotonic()
     try:

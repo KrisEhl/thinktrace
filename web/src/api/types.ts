@@ -93,6 +93,8 @@ export interface Message {
   node_id: string; // the node this message is pinned to (root if none was selected)
   claim_ids?: string[];
   pending?: boolean;
+  /** An answer posted into the chat: its sentences with their citations. */
+  answer?: AnswerSentence[];
 }
 
 export interface AnswerSentence {

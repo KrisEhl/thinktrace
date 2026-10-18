@@ -61,6 +61,12 @@ describe("translator on runs/sample", () => {
     expect(Object.values(st.claims).some((c) => claimUsage(st, c).state === "used")).toBe(true);
   });
 
+  it("posts each answer version into the chat log with its sentences and citations", () => {
+    const posted = st.messages.filter((m) => m.answer);
+    expect(posted.map((m) => m.id)).toEqual(["m-report-1", "m-report-2"]);
+    expect(posted[1].answer).toEqual(st.answer);
+  });
+
   it("puts the steers in the chat log, pinned to their direction", () => {
     const steers = st.messages.filter((m) => m.id.startsWith("m-steer-") && m.role === "user");
     expect(steers.map((m) => m.node_id).sort()).toEqual(["d1", "d2"]);
