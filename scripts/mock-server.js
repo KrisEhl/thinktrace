@@ -170,7 +170,8 @@ function evidenceBlocks(text) {
     .filter((b) => b.id && b.sentences.length);
 }
 
-function writerReply(messages) {
+function writerReply(messages, model) {
+  const sloppy = SLOPPINESS[model] ?? 1;
   const user = messages.find((m) => m.role === 'user')?.content ?? '';
   const question = user.match(/^Question: (.*)$/m)?.[1] ?? 'the question';
   const blocks = evidenceBlocks(user);
@@ -180,8 +181,11 @@ function writerReply(messages) {
     const sentence = b.sentences[(i * 2 + 1) % b.sentences.length];
     if (claims.some((c) => c.quote === sentence)) continue;
     const other = blocks[(i + 1) % blocks.length];
-    // Every fifth claim gets a paraphrased quote, so the "quote not found" path is visible too.
-    const quote = claims.length === 3 ? sentence.replace(/^(\w+) /, '$1 reportedly ') : sentence;
+    // Some claims get a paraphrased quote (how many depends on the model), so the
+    // "quote not found" path is visible and models rank differently.
+    const paraphrase = sloppy > 0 && (claims.length + 2) % 5 < sloppy;
+    const words = sentence.split(' ');
+    const quote = paraphrase ? `${words.slice(0, Math.ceil(words.length * 0.6)).join(' ')}, as several reports suggest.` : sentence;
     claims.push({
       text: sentence.replace(/\.$/, ''),
       sources: [...new Set([b.id, other.id])],
@@ -242,11 +246,28 @@ function llmReply(body) {
   const system = body.messages?.[0]?.content ?? '';
   if (body.tools) return researcherReply(body.messages);
   if (system.includes('planner')) return plannerReply(body.messages.find((m) => m.role === 'user')?.content ?? '');
-  if (system.includes('final answer')) return writerReply(body.messages);
+  if (system.includes('final answer')) return writerReply(body.messages, body.model);
   if (system.includes('BREAK')) return attackerReply(body.messages);
   if (system.includes('judge')) return judgeReply(body.messages);
   return { content: 'pong' };
 }
+
+// Fake catalog in Token Factory's verbose format. Models differ in how many
+// quotes they paraphrase, so the model leaderboard has something to rank.
+const MODELS = [
+  ['mock/careful-llm', 'Mock Careful (always quotes exactly)', 0],
+  ['mock/fake-llm', 'Mock Default', 1],
+  ['mock/sloppy-llm', 'Mock Sloppy (paraphrases quotes)', 3],
+].map(([id, name]) => ({
+  id,
+  name,
+  context_length: 131072,
+  architecture: { modality: 'text->text' },
+  supported_features: ['tools', 'json_mode', 'reasoning'],
+  pricing: { prompt: '0.0000001', completion: '0.0000004' },
+}));
+MODELS.push({ id: 'mock/embedding', name: 'Mock Embedding (hidden: no tools)', architecture: { modality: 'text->embedding' }, supported_features: [] });
+const SLOPPINESS = { 'mock/careful-llm': 0, 'mock/sloppy-llm': 3 };
 
 // ---------- HTTP ----------
 export function startMock(port = Number(process.env.MOCK_PORT ?? 4010)) {
@@ -257,7 +278,7 @@ export function startMock(port = Number(process.env.MOCK_PORT ?? 4010)) {
     const send = (status, obj) => res.writeHead(status, { 'content-type': 'application/json' }).end(JSON.stringify(obj));
     const path = req.url.split('?')[0].replace(/\/+$/, '');
 
-    if (path.endsWith('/models')) return send(200, { data: [{ id: 'mock/fake-llm' }, { id: 'reflection/beam' }] });
+    if (path.endsWith('/models')) return send(200, { data: MODELS });
 
     if (path.endsWith('/chat/completions')) {
       await jitter(LATENCY);

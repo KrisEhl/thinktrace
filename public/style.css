@@ -20,6 +20,11 @@
   box-sizing: border-box;
 }
 
+/* The hidden attribute must win over component display rules. */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -701,4 +706,81 @@ h1 {
   text-align: center;
   color: var(--dim);
   border: 0;
+}
+
+#model-select {
+  font-family: var(--mono);
+  font-size: 19px;
+  max-width: 460px;
+  padding: 5px 8px;
+  color: #fff;
+  background: #0b0d13;
+  border: 2px solid var(--line);
+  outline: none;
+}
+
+#model-select:focus {
+  border-color: var(--accent);
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin: 0 40px 16px 0;
+}
+
+.tabs button {
+  font-size: 9px;
+  padding: 8px 12px;
+  background: #1d2232;
+  color: var(--dim);
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+
+.tabs button.on {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.leaderboard-panel {
+  width: min(900px, 100%);
+}
+
+.board .model {
+  word-break: break-all;
+}
+
+.board .sub {
+  color: var(--dim);
+  font-size: 16px;
+}
+
+.board td.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.bar {
+  display: inline-block;
+  height: 8px;
+  background: var(--high);
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.prey {
+  font-family: var(--pixel);
+  font-size: 7px;
+  color: var(--bg);
+  background: var(--refuted);
+  padding: 2px 4px;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+
+.footnote {
+  color: var(--dim);
+  font-size: 16px;
+  margin-top: 12px;
 }

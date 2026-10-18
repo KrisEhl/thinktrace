@@ -15,7 +15,24 @@ Search Shooter is a deep research agent that you play. It runs on **Nebius Token
 
 ## Global leaderboard
 
-Every claim the fact-checker **refutes** after you shoot it apart earns **+100 points**. Pick a name on the start screen and open the leaderboard with the 🏆 button, the in-game LEADERBOARD button, or **L**. Points are awarded on the server from the verdict, so they can't be faked from the browser. Each claim can only score once, and offline demo replays don't score. Scores are stored in `data/leaderboard.json` (set `LEADERBOARD_FILE` to move it), so everyone playing on the same server shares one leaderboard. `npm run mock` writes to `data/leaderboard.mock.json` instead.
+Every claim the fact-checker **refutes** after you shoot it apart earns **+100 points**. Pick a name on the start screen and open the leaderboard with the 🏆 button, the in-game LEADERBOARD button, or **L**. Points are awarded on the server from the verdict, so they can't be faked from the browser. Each claim can only score once, and offline demo replays don't score. Scores are stored in `data/leaderboard.json`, so everyone playing on the same server shares one leaderboard.
+
+## Pick the model, compare the models
+
+The start screen has a **research model** picker filled live from the Token Factory catalog. It offers every text model that supports tool calling (Beam, Kimi, DeepSeek, GLM, Qwen, gpt-oss, Nemotron and others), with prices per million tokens. The research agent (planner, tool loop, writer) runs on the model you pick.
+
+The fact-checker always stays on one model (`NEBIUS_CHECKER_MODEL`, default `NEBIUS_MODEL`), so every research model faces the same judge. The **MODELS** tab of the leaderboard ranks them:
+
+| Column | Meaning |
+| --- | --- |
+| Quotes OK | Share of claims whose quote was found word for word in the fetched source |
+| Up / Weak / Ref | Fact-check verdicts on that model's claims |
+| Survival | Share of fact-checked claims that held up (weakened counts half) |
+| Trust | 60% survival + 40% quotes OK, with Laplace smoothing so one lucky run can't top the table |
+
+The model whose claims get refuted most often (minimum 3 checks) is tagged **EASIEST PREY**, so players know where the points are. Stats are stored in `data/models.json`.
+
+Both leaderboards live in `DATA_DIR` (default `./data`). `npm run mock` uses `data/mock/` so fake runs never touch the real boards.
 
 ## Why the citations hold up
 
@@ -46,7 +63,7 @@ npm run mock        # app on :3000 against a local fake Token Factory + Tavily o
 npm run mock:dev    # same, restarting on file changes
 ```
 
-`scripts/mock-server.js` speaks the same HTTP APIs as Token Factory and Tavily, so the real agent code runs unchanged: planner, tool loop with parallel tool calls, writer, quote verification, fact-checker and retries. Content is generated from your question. Page text contains the quoted sentences word for word, so citations verify. Different pages report slightly different numbers, so the fact-checker returns a mix of verdicts, and one claim per run uses a paraphrased quote so you can see the "quote not found" state. No keys are needed, and keys in `.env` are ignored.
+`scripts/mock-server.js` speaks the same HTTP APIs as Token Factory and Tavily, so the real agent code runs unchanged: planner, tool loop with parallel tool calls, writer, quote verification, fact-checker and retries. Content is generated from your question. Page text contains the quoted sentences word for word, so citations verify. Different pages report slightly different numbers, so the fact-checker returns a mix of verdicts. The fake catalog offers three models (careful, default, sloppy) that paraphrase 0, 1 and 3 quotes per run, so the model leaderboard has something to rank. No keys are needed, and keys in `.env` are ignored.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -64,6 +81,7 @@ npm run mock:dev    # same, restarting on file changes
 | `NEBIUS_CHECKER_MODEL` | same as `NEBIUS_MODEL` | Adversarial fact-checker (try Beam). `npm run check` lists the Beam ids in your catalog |
 | `TAVILY_API_KEY` | | Tavily key |
 | `PORT` | `3000` | HTTP port |
+| `DATA_DIR` | `./data` | Where the player and model leaderboards are stored |
 
 ## Controls
 
@@ -102,3 +120,6 @@ API:
 - `GET /api/run/:id`: JSON with the answer, claims, sources and trace
 - `GET /api/run/:id.md`: the same as Markdown
 - `GET /api/leaderboard?player=…`: top 20 plus your own rank
+- `GET /api/models`: selectable research models (Token Factory catalog, cached 10 min)
+- `GET /api/model-leaderboard`: per-model stats and trust ranking
+- `GET /api/research?q=…&model=…`: `model` picks the research model (must be in the catalog)

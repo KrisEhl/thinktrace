@@ -116,6 +116,7 @@ export async function runResearch(run, emit, signal) {
   emit('status', { phase: 'planning', text: 'Planning the research' });
   const retryNote = (what) => (attempt, why) => emit('thinking', { step: what, text: `${what} reply unusable (${why}), retrying (${attempt + 1})` });
   const { json: p = {}, response: planned } = await chatJson({
+    model: run.model,
     messages: [
       { role: 'system', content: PLANNER },
       { role: 'user', content: question },
@@ -202,7 +203,7 @@ export async function runResearch(run, emit, signal) {
   let nudged = false;
   for (let step = 1; step <= MAX_STEPS && !finished; step++) {
     if (signal?.aborted) throw new Error('aborted');
-    const r = await chat({ messages, tools: TOOLS, maxTokens: 8000, signal });
+    const r = await chat({ model: run.model, messages, tools: TOOLS, maxTokens: 8000, signal });
     if (r.reasoning) emit('thinking', { step, text: clip(r.reasoning, 500) });
 
     const native = r.toolCalls.length > 0;
@@ -254,6 +255,7 @@ export async function runResearch(run, emit, signal) {
     .map((s) => `[${s.id}] ${s.title}\nURL: ${s.url}\n${s.read ? 'TEXT' : 'SNIPPET'}: ${clip(s.text || s.snippet, s.read ? 4500 : 500)}`)
     .join('\n\n=====\n\n');
   const { json: draft, response: written, error } = await chatJson({
+    model: run.model,
     messages: [
       { role: 'system', content: WRITER },
       { role: 'user', content: `Question: ${question}\n\nEvidence:\n\n${evidence}` },

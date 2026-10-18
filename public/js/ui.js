@@ -157,6 +157,38 @@ export function renderLeaderboard(data, { demo } = {}) {
     </table>` : '<p>No points yet. Be the first to break a claim.</p>'}`;
 }
 
+const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)}%`);
+// Dedicated endpoints carry a deployment prefix and random suffix; keep just the model name.
+export const shortModel = (id) => {
+  const s = String(id);
+  return s.startsWith('dedicated/') ? `${s.replace(/^dedicated\/[^/]+\//, '').replace(/-[A-Za-z0-9]{6}$/, '')} (dedicated)` : s;
+};
+
+export function renderModelLeaderboard(data) {
+  const rows = data.models
+    .map(
+      (m) => `<tr>
+      <td class="rank">${MEDAL[m.rank - 1] ? `<span class="medal">${MEDAL[m.rank - 1]}</span>` : `#${m.rank}`}</td>
+      <td><span class="model">${esc(shortModel(m.model))}</span>${m.model === data.easiestPrey ? '<span class="prey">EASIEST PREY</span>' : ''}
+        <div class="sub">${m.runs} run${m.runs === 1 ? '' : 's'} · ${m.claims} claims · ~${m.avgSeconds}s · ${m.avgReads} pages read${m.failed ? ` · ${m.failed} failed` : ''}</div></td>
+      <td class="num">${pct(m.quoteAccuracy)}</td>
+      <td class="num">${m.challenged ? `<span style="color:var(--upheld)">${m.upheld}</span> / <span style="color:var(--weakened)">${m.weakened}</span> / <span style="color:var(--refuted)">${m.refuted}</span>` : '–'}</td>
+      <td class="num">${pct(m.survival)}</td>
+      <td class="pts"><span class="bar" style="width:${m.trust * 0.6}px"></span>${m.trust}</td>
+    </tr>`,
+    )
+    .join('');
+  $('leaderboard-body').innerHTML = `
+    <h2>🤖 MODEL LEADERBOARD</h2>
+    <div class="report-meta">Which research model holds up best? Every model's claims face the same fact-checker: <b>${esc(shortModel(data.checker))}</b>.</div>
+    ${data.models.length ? `<table class="board">
+      <thead><tr><th>RANK</th><th>MODEL</th><th class="pts">QUOTES OK</th><th class="pts">UP / WEAK / REF</th><th class="pts">SURVIVAL</th><th class="pts">TRUST</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="footnote">Quotes OK: share of quotes found word for word in the fetched source. Survival: share of fact-checked claims that held up (weakened counts half). Trust = 60% survival + 40% quotes OK, smoothed so one lucky run can't top the table. Easiest prey: the model whose claims get refuted most often (min. 3 checks), so the best one to hunt for points.</p>`
+    : '<p>No runs yet. Pick a model on the start screen and play a round.</p>'}`;
+}
+
 const VERDICT_COLOR = { upheld: 'var(--upheld)', weakened: 'var(--weakened)', refuted: 'var(--refuted)' };
 
 export function renderReport(run) {

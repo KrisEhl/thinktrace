@@ -1,33 +1,12 @@
 // Global leaderboard: players earn points when the fact-checker refutes a claim
 // they shot. Points are awarded server-side from the verdict, so clients can't
-// fake them. Stored as JSON on disk (LEADERBOARD_FILE, default data/leaderboard.json).
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// fake them. Stored in DATA_DIR/leaderboard.json.
+import { jsonStore } from './store.js';
 
 export const POINTS = { refuted: 100 };
 
-const FILE = resolve(process.env.LEADERBOARD_FILE || fileURLToPath(new URL('../data/leaderboard.json', import.meta.url)));
-const board = load();
-let saveTimer;
-
-function load() {
-  try {
-    return new Map(Object.entries(JSON.parse(readFileSync(FILE, 'utf8'))));
-  } catch {
-    return new Map();
-  }
-}
-
-// Debounced atomic write (tmp file + rename) so a crash never leaves half a file.
-function save() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    mkdirSync(dirname(FILE), { recursive: true });
-    writeFileSync(`${FILE}.tmp`, JSON.stringify(Object.fromEntries(board), null, 1));
-    renameSync(`${FILE}.tmp`, FILE);
-  }, 200);
-}
+const store = jsonStore('leaderboard');
+const board = store.map;
 
 export const validPlayerId = (id) => typeof id === 'string' && /^[A-Za-z0-9-]{8,64}$/.test(id);
 
@@ -52,7 +31,7 @@ export function award(player, verdict, { claim, question }) {
   entry.lastTakedown = { claim: String(claim).slice(0, 160), question: String(question).slice(0, 160), at: new Date().toISOString() };
   entry.updatedAt = entry.lastTakedown.at;
   board.set(player.id, entry);
-  save();
+  store.save();
   return { awarded, total: entry.points };
 }
 

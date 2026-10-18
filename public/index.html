@@ -27,6 +27,11 @@
           <button type="submit">GO</button>
         </form>
         <div id="examples" class="examples"></div>
+        <div class="player-row" id="model-row" hidden>
+          <label for="model-select">RESEARCH MODEL</label>
+          <select id="model-select"></select>
+        </div>
+        <p class="scoring" id="model-note" hidden></p>
         <div class="player-row">
           <label for="player-name">YOUR NAME</label>
           <input id="player-name" autocomplete="off" maxlength="20" placeholder="Anonymous Worm" />
@@ -82,6 +87,10 @@
     <section id="leaderboard" class="overlay" hidden>
       <div class="panel leaderboard-panel">
         <button class="close" data-close="leaderboard">×</button>
+        <div class="tabs">
+          <button type="button" data-tab="players" class="on">PLAYERS</button>
+          <button type="button" data-tab="models">MODELS</button>
+        </div>
         <div id="leaderboard-body"></div>
       </div>
     </section>

@@ -19,6 +19,8 @@ const { challengeClaim } = await import('./agent/factcheck.js');
 const { runDemoResearch, demoChallenge, DEMO_QUESTION } = await import('./agent/demo.js');
 const { toMarkdown } = await import('./agent/export.js');
 const leaderboard = await import('./agent/leaderboard.js');
+const modelStats = await import('./agent/model-stats.js');
+const { listModels, resolveModel } = await import('./agent/models.js');
 
 const PUBLIC = fileURLToPath(new URL('./public/', import.meta.url));
 const MIME = {
@@ -84,7 +86,7 @@ async function handleResearch(req, res, url) {
     id: randomUUID(),
     question,
     mode: demo ? 'demo' : 'live',
-    model: demo ? 'offline demo' : cfg.model,
+    model: demo ? 'offline demo' : await resolveModel(url.searchParams.get('model')),
     checkerModel: demo ? 'offline demo' : cfg.checkerModel,
     sources: new SourceRegistry(),
     claims: [],
@@ -100,10 +102,12 @@ async function handleResearch(req, res, url) {
   emit('run', { runId: run.id, question, mode: run.mode, model: run.model, checkerModel: run.checkerModel });
   try {
     await (demo ? runDemoResearch : runResearch)(run, emit, stream.signal);
+    if (!demo) modelStats.recordRun(run);
     emit('done', { runId: run.id });
   } catch (err) {
     if (!stream.signal.aborted) {
       console.error(err);
+      if (!demo) modelStats.recordFailure(run);
       emit('fail', { message: err.message });
     }
   }
@@ -127,6 +131,7 @@ async function handleChallenge(req, res, url) {
   }
   try {
     await (run.mode === 'demo' ? demoChallenge : challengeClaim)(run, claim, emit, stream.signal);
+    if (run.mode !== 'demo') modelStats.recordVerdict(run, claim.status);
     const scored = leaderboard.award(run.player, claim.status, { claim: claim.text, question: run.question });
     if (scored) emit('points', { claimId: claim.id, ...scored });
   } catch (err) {
@@ -177,6 +182,16 @@ const server = http.createServer(async (req, res) => {
       const cfg = getConfig();
       res.writeHead(200, { 'content-type': 'application/json' }).end(
         JSON.stringify({ live: cfg.live, model: cfg.model, checkerModel: cfg.checkerModel, demoQuestion: DEMO_QUESTION }),
+      );
+    } else if (pathname === '/api/models') {
+      const cfg = getConfig();
+      const models = cfg.live ? await listModels() : [];
+      res.writeHead(200, { 'content-type': 'application/json' }).end(
+        JSON.stringify({ default: cfg.model, checker: cfg.checkerModel, models }),
+      );
+    } else if (pathname === '/api/model-leaderboard') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(
+        JSON.stringify({ checker: getConfig().checkerModel, ...modelStats.modelStandings() }),
       );
     } else if (pathname === '/api/leaderboard') {
       res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' }).end(

@@ -58,17 +58,53 @@ async function fetchStandings() {
 }
 fetchStandings().then((d) => (document.getElementById('points-per-refute').textContent = d.pointsPerRefute)).catch(() => {});
 
-async function openLeaderboard() {
+let leaderboardTab = 'players';
+
+async function openLeaderboard(tab = leaderboardTab) {
+  leaderboardTab = tab;
   const overlay = document.getElementById('leaderboard');
   overlay.hidden = false;
   if (game) paused = true;
-  document.getElementById('leaderboard-body').innerHTML = '<h2>🏆 LEADERBOARD</h2><p>Loading…</p>';
+  for (const b of overlay.querySelectorAll('[data-tab]')) b.classList.toggle('on', b.dataset.tab === tab);
+  const body = document.getElementById('leaderboard-body');
+  body.innerHTML = '<p>Loading…</p>';
   try {
-    ui.renderLeaderboard(await fetchStandings(), { demo });
+    if (tab === 'models') ui.renderModelLeaderboard(await fetch('/api/model-leaderboard').then((r) => r.json()));
+    else ui.renderLeaderboard(await fetchStandings(), { demo });
   } catch {
-    document.getElementById('leaderboard-body').innerHTML = '<h2>🏆 LEADERBOARD</h2><p>Could not load the leaderboard.</p>';
+    body.innerHTML = '<p>Could not load the leaderboard.</p>';
   }
 }
+
+// ---------- research model picker ----------
+const $model = document.getElementById('model-select');
+let chosenModel = localStorage.getItem('ss.model') ?? '';
+async function loadModels() {
+  if (demo) return;
+  try {
+    const { default: def, checker, models } = await fetch('/api/models').then((r) => r.json());
+    if (!models.length) return;
+    if (!models.some((m) => m.id === chosenModel)) chosenModel = def;
+    $model.innerHTML = models
+      .map((m) => {
+        const price = m.pricing?.prompt != null ? ` · $${m.pricing.prompt.toFixed(2)}/$${m.pricing.completion.toFixed(2)} per 1M` : '';
+        const tags = [m.id === def ? 'default' : '', m.reasoning ? 'reasoning' : ''].filter(Boolean).join(', ');
+        return `<option value="${ui.esc(m.id)}">${ui.esc(ui.shortModel(m.id))}${tags ? ` (${tags})` : ''}${price}</option>`;
+      })
+      .join('');
+    $model.value = chosenModel;
+    document.getElementById('model-row').hidden = false;
+    const note = document.getElementById('model-note');
+    note.innerHTML = `Every model is fact-checked by the same judge, ${ui.esc(ui.shortModel(checker))}, so the 🤖 model leaderboard stays fair.`;
+    note.hidden = false;
+  } catch {
+    /* keep the server default */
+  }
+}
+$model.addEventListener('change', () => {
+  chosenModel = $model.value;
+  localStorage.setItem('ss.model', chosenModel);
+});
 
 // ---------- start screen ----------
 const $q = document.getElementById('question');
@@ -93,6 +129,8 @@ if (demo) {
   }
 }
 $q.focus();
+
+loadModels();
 
 document.getElementById('ask').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -187,7 +225,8 @@ function listen(url, onEvent) {
 
 function connectResearch(question) {
   const who = `&player=${encodeURIComponent(player.id)}&name=${encodeURIComponent(player.name)}`;
-  const url = `/api/research?q=${encodeURIComponent(question)}${forceDemo ? '&demo=1' : ''}${who}`;
+  const model = chosenModel ? `&model=${encodeURIComponent(chosenModel)}` : '';
+  const url = `/api/research?q=${encodeURIComponent(question)}${forceDemo ? '&demo=1' : ''}${who}${model}`;
   listen(url, (type, d) => {
     ui.trace(type, d);
     onResearchEvent(type, d);
@@ -1065,8 +1104,9 @@ canvas.addEventListener('wheel', (e) => {
 });
 
 document.getElementById('btn-new').onclick = newSearch;
-document.getElementById('btn-leaderboard').onclick = openLeaderboard;
-document.getElementById('btn-leaderboard-start').onclick = openLeaderboard;
+document.getElementById('btn-leaderboard').onclick = () => openLeaderboard();
+document.getElementById('btn-leaderboard-start').onclick = () => openLeaderboard();
+for (const b of document.querySelectorAll('#leaderboard [data-tab]')) b.onclick = () => openLeaderboard(b.dataset.tab);
 document.querySelector('[data-close="leaderboard"]').onclick = () => {
   if (game) closeOverlays();
   else document.getElementById('leaderboard').hidden = true;
