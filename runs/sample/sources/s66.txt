@@ -1,0 +1,60 @@
+[Skip to content](#main)
+
+
+[![Fusion Industry Association](https://www.fusionindustryassociation.org/wp-content/uploads/2023/03/fia_logo.jpg)](https://www.fusionindustryassociation.org/)
+
+[BECOME A MEMBER](/membership/)
+
+[![Fusion Industry Association](https://www.fusionindustryassociation.org/wp-content/uploads/2023/03/fia_logo.jpg)](https://www.fusionindustryassociation.org/)
+
+![](https://www.fusionindustryassociation.org/wp-content/uploads/2025/07/FIA-2025.png)
+
+# Over $2.5 Billion Invested in Fusion Industry in Past Year
+
+[Building a Global Fusion Energy Industry](https://www.fusionindustryassociation.org/category/building-a-global-fusion-energy-industry/), [From the FIA](https://www.fusionindustryassociation.org/category/from-the-fia/)
+
+* Fusion companies raised a total of $2.64 billion in the 12 months leading to July 2025
+* The year’s investment total is the highest since 2022 and a178% rise from last year
+* Total funding for the 53 fusion companies stands at $9.766 billion, a five-fold increase since 2021
+
+22 July 2025: The fusion industry raised $2.64 billion in private and public funding in the 12 months leading to July 2025, according to the annual [*Global Fusion Industry Report*](https://www.fusionindustryassociation.org/news/from-the-fia/#industry-reports) by the Fusion Industry Association (FIA). The figure marks a significant increase from 2024 and is the second highest yearly fusion funding figure since the report began, after the 2022 record year.
+
+Now in its fifth year, the report provides a comprehensive view of the growth of the fusion sector and progress towards commercial fusion deployment. This year, 53 fusion companies responded – up from 23 in 2021 – with eight new entrants since last year.
+
+This year’s total figure includes several major funding rounds including the $900m Series A for US-based Pacific Fusion, which came out of stealth mode in November 2024. Other significant rounds included a $425m Series F for US-based Helion in January 2025, and €113m Series B for Germany-based Marvel Fusion.
+
+Despite the acceleration in funding, 83% of respondents still consider investment a major challenge. And when asked how much more investment each company would need to bring their first pilot plants online, answers ranged from $3m to $12.5 bn, with a median response of $700m. Giving a total of $77 billion, this is eight times more than has been committed to the industry to date, though the report emphasizes that this should not be taken as the total investment needed, as there will inevitably be some consolidation, with a smaller number of market leaders emerging.
+
+Nonetheless, fusion companies remain confident in their timelines for delivering fusion-generated electricity to the grid, with 84% of respondents believing this will happen before the end of the 2030s and 53% by 2035.
+
+The report also highlights that backing is coming from a wide range of investors, including deep tech venture capital firms like DCVC and Breakthrough Energy Ventures; industrial giants such as Chevron, Siemens Energy, and Nucor; sovereign and quasi-public funds including In-Q-Tel, the European Innovation Council Fund, and Plynth Energy; and strategic players from the energy sector like Shell Ventures and Energy Impact Partners.
+
+The amount of public funding invested in fusion companies also increased by 84% from last year, growing by almost $360 million to nearly $800 million in total.
+
+More than half of the fusion energy startups in the report are based in the US (29), while a further 13 are in Europe. The remainder are operating in countries across Asia and Oceania. The survey showed fusion companies directly employ 4,607 people and support at least 9,300 supply chain jobs, though this is likely an undercount as not all companies provided employee data. Since 2021, the number of people employed directly by fusion companies has more than quadrupled.
+
+> “With a half-decade of consistent data, we can now identify clear trends that speak to both the promise and challenges of commercial fusion energy. The acceleration of capital, even when the global economy has tightened, is a signal of maturing investor confidence, technological progress, and a rapidly coalescing supply chain. The maturation of the ecosystem, and increased interest from governments via public-private partnerships show fusion is no longer a purely scientific effort; it is a global industrial movement.”
+>
+> FIA CEO Andrew Holland
+
+[The full report can be downloaded on the FIA website.](https://www.fusionindustryassociation.org/news/from-the-fia/#industry-reports)
+
+**About the Report**This is the fifth annual Global Fusion Industry Report from the Fusion Industry Association. Responses are based on answers to a survey issued to private fusion companies. We approached the fusion developers that we know about and where contact information was available. 52 companies responded to the survey this year. One is in stealth mode so not named. A 53rd did not respond to this year’s survey but confirmed inclusion with last year’s data. All responses are voluntary, and we strive to be impartial and transparent, presenting information on the various companies as it has been conveyed to us. This survey should be seen as a snapshot in time; a view of the industry when the survey was conducted in the second quarter of 2025. Repeating the activity year-on-year enables us to see the picture evolving.  
+   
+Many private fusion companies are members of the Fusion Industry Association, though this is not a requirement for the report, and we strive to treat members and non-members the same. Membership of the FIA requires companies to have a plan for fusion commercialization, to demonstrate private investment to support their mission, and to pay dues. Companies playing a supportive role in the fusion industry as suppliers, customers, and advocacy organizations may join as Affiliate Members, but these wider-industry companies are not the subject of this report.
+
+**About The Fusion Industry Association (FIA)**The FIA is the leading voice of the fusion industry and a central point for coordination across the global fusion community to support accelerated growth.
+
+[![facebook](https://www.fusionindustryassociation.org/wp-content/plugins/ultimate-social-media-icons/images/responsive-icon/facebook.svg)Share on Facebook](https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fwww.fusionindustryassociation.org%2Fover-2-5-billion-invested-in-fusion-industry-in-past-year%2F)[![Twitter](https://www.fusionindustryassociation.org/wp-content/plugins/ultimate-social-media-icons/images/responsive-icon/Twitter.svg)Tweet](https://x.com/intent/post?text=Hey%2C+check+out+this+cool+site+I+found%3A+www.yourname.com+%23Topic+via%40my_twitter_name&url=https%3A%2F%2Fwww.fusionindustryassociation.org%2Fover-2-5-billion-invested-in-fusion-industry-in-past-year%2F)
+
+### Common Fusion Approaches
+
+**Magnetic confinement:** Plasma is heated to 100 million °C or more, then squeezed and held in place by strong magnetic fields, allowing many fusion reactions to occur. (Example: tokamaks, stellarators)
+
+**Inertial confinement:** Tiny fuel pellets are struck by powerful lasers. The outer layer explodes outward, compressing the core to fusion conditions for a few nanoseconds, producing a brief but intense pulse of energy from each pellet. (Example: National Ignition Facility)
+
+**Hybrid systems:** Combine compression (e.g., from lasers, plasma pistons, or mechanical impact) with moderate magnetic fields to reduce energy losses and improve confinement.
+
+**Electrostatic fusion:** Uses high electric potentials to accelerate ions toward a central reaction zone, causing them to collide at high energies and fuse. The ions are guided and confined by electric fields rather than magnets, creating a compact environment for fusion reactions.
+
+ 

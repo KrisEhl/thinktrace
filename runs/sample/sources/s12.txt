@@ -1,0 +1,27 @@
+Technology
+
+# ARC: Putting fusion energy on the grid
+
+![ARC Tokamak Rendering 2024](https://images.prismic.io/cfs-website/Z1H1NZbqstJ98FkG_CFS-ARC-render-2024.png?auto=format%2Ccompress&fit=max&w=1600&q=75)
+
+ARC, the world's first grid-scale fusion power plant, will mark the start of the fusion age.
+
+Commonwealth Fusion Systems is on a mission to deliver the urgent transition to fusion energy, the power source of the sun and other stars, and ARC is how we’ll do it. When the first ARC plant arrives in the early 2030s, it’ll provide the electrical grid with about 400 megawatts of clean, zero-carbon, power — a firm source customers can count on having when they need it. Then we’ll build thousands more. It’s a pathway for abundant, clean energy that can meet the rising demand for electricity and expand global energy access.
+
+**ARC is designed to be commercial,** incorporating market feedback so it’ll slot seamlessly into the power grid. It checks all the boxes for the electricity generation market: a firm supply of clean, safe, and affordable energy that works for dispatchable or baseload demand, all from a facility that can be built just about anywhere. And we're talking to customers now who want to sign up for its power.
+
+**ARC will be flexible and familiar.** To the grid, it’ll look just like the 2,000 natural gas plants already built in the US — except that ARC won’t release any carbon dioxide or other greenhouse gases. Operators will be able to ramp ARC’s power output up and down faster than possible with most fossil plants, making it easy to integrate with renewable resources and adapt to grid or market changes. More likely, ARC will supply steady baseload power that’s increasingly needed to support new critical infrastructure and replace fossil fuel plants.
+
+**ARC will be compact,** making site planning simple. Fusion fuel’s energy density is 14 million times greater than coal and 4 times greater than fission. That’s one reason each ARC will be about the size of a big-box store with about the same site needs. And it uses far less land than solar or wind energy. This makes it easier to build near areas with heavy power demand, with significantly less development of transmission systems.
+
+**ARC will be safe.** Unlike nuclear fission plants, fusion energy has no chance of runaway chain reactions or meltdowns, and there’s no long-lived or high-level nuclear waste. US regulations treat fusion power plants similarly to how they treat particle accelerators, not nuclear fission plants — an approach that recognizes fusion’s inherent safety and supports its rapid scaling.
+
+**ARC power will be affordable**. ARC power will be the lowest cost source of clean, firm power that can be deployed anywhere. As its technology matures and component costs drop, ARC power will become even more competitive in the way that solar and wind power have.
+
+**ARC fuel will be abundant, ubiquitous, and cheap.** The fusion process heats two forms of hydrogen, deuterium and tritium, into a highly energetic plasma — a cloud of particles that fuse and release energy. A liquid “blanket” captures that energy as heat, then transfers it to water that turns a steam turbine to generate power. Deuterium is available nearly everywhere and can be filtered from seawater, while ARC blankets will naturally produce tritium. And because only small amounts are needed, 30 years of ARC fuel can be delivered by a single truck when a new plant opens, with no price change risks down the line and no linkages to globally fraught supply chains. With fusion fuel costs forecast to become effectively negligible, volatile power prices driven by fluctuations in natural gas prices will be a thing of the past.
+
+**ARC is more than a power plant.** It’s the foundation for a future of clean, scalable energy that meets global demand while reducing humanity’s carbon footprint. Early customers will have an edge in the energy transition, while owners, investors and developers will benefit as ARCs grow from early deployment to dominating the firm power industry.
+
+CFS will independently finance, build, own, and operate [the first ARC power plant](/chesterfield/overview) at the Fall Line Fusion Power Station in Chesterfield County, near Richmond, Virginia — an area with a growing population, economy, and demand for energy. We expect this ARC project will create hundreds of jobs to build and operate the power plant.
+
+[CFS has also established a strategic partnership with Google](https://blog.cfs.energy/google-deal-helps-propel-cfs-fusion-energy-onto-the-grid/), who has agreed to purchase half the first plant’s power and further their investment in the company. This relationship will prove valuable for not only the first ARC, but future ARC power plants as we continue on our path to commercialize fusion energy.

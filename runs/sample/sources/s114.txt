@@ -1,0 +1,224 @@
+ 
+
+[![AIP_Logo](https://aip.brightspotcdn.com/fe/cb/baa748ae4d868d49228857e2b2af/logo-aip-dark-blue.svg)](https://www.aip.org)
+
+[FYI](https://www.aip.org/fyi)
+
+ 
+
+FYI: Science Policy News
+
+Share
+
+* [Facebook](https://www.facebook.com/dialog/share?)
+* [LinkedIn](https://www.linkedin.com/shareArticle?url=https%3A%2F%2Fwww.aip.org%2Ffyi%2Fafter-latest-iter-delay-senators-quiz-fusion-experts-over-commercial-reactor-timelines&mini=true&title=After%20Latest%20ITER%20Delay%2C%20Senators%20Quiz%20Fusion%20Experts%20over%20Commercial%20Reactor%20Timelines&summary=Nuclear%20fusion%20experts%20shared%20varying%20estimates%20of%20the%20time%20it%20will%20take%20to%20commercialize%20reactors%20following%20news%20the%20ITER%20fusion%20research%20project%20is%20again%20delayed.&source=AIP)
+* [BlueSky](https://bsky.app/intent/compose?text=After%20Latest%20ITER%20Delay%2C%20Senators%20Quiz%20Fusion%20Experts%20over%20Commercial%20Reactor%20Timelines%20https%3A%2F%2Fwww.aip.org%2Ffyi%2Fafter-latest-iter-delay-senators-quiz-fusion-experts-over-commercial-reactor-timelines)
+* [Email](mailto: ?)
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+# After Latest ITER Delay, Senators Quiz Fusion Experts over Commercial Reactor Timelines
+
+SEP 20, 2024
+
+Nuclear fusion experts shared varying estimates of the time it will take to commercialize reactors following news the ITER fusion research project is again delayed.
+
+[![AIP_Lindsay_McKenzie_800x1000.jpg](https://aip.brightspotcdn.com/dims4/default/2ade1a6/2147483647/strip/true/crop/800x800+0+0/resize/100x100!/quality/90/?url=https%3A%2F%2Fk1-prod-aip.s3.us-east-2.amazonaws.com%2Fbrightspot%2F7b%2F98%2F81935cc8445f87e3d002115e7e7e%2Faip-lindsay-mckenzie-800x1000.jpg)](https://www.aip.org/lindsay-mckenzie) 
+
+[Lindsay McKenzie](https://www.aip.org/lindsay-mckenzie)
+
+Science Policy Reporter, FYI ,    AIP
+
+![Manchin Fusion Hearing September 2024.png](https://aip.brightspotcdn.com/dims4/default/0d0f3d3/2147483647/strip/true/crop/1724x970+0+0/resize/820x461!/quality/90/?url=https%3A%2F%2Fk1-prod-aip.s3.us-east-2.amazonaws.com%2Fbrightspot%2F44%2F75%2F855ab44841cdb1c8f73e43f4ca7f%2Fmanchin-fusion-hearing-september-2024.png) 
+
+Sen. Joe Manchin (I-WV), chair of the Senate Energy and Natural Resources Committee, questions witnesses on fusion energy’s progress during a hearing on Sept. 19.
+
+Senate Energy and Natural Resources Committee
+
+Fusion energy experts expressed fresh optimism at a Senate [hearing](https://www.energy.senate.gov/hearings/2024/9/full-committee-hearing-to)  this week about the prospect of commercializing fusion energy, despite some skepticism from senators over their projected timelines.
+
+Fusion research company Helion Energy is “on track to have the first-ever commercially operating fusion plant in 2028” as part of a [power purchase agreement](https://www.reuters.com/technology/microsoft-buy-power-nuclear-fusion-company-helion-2023-05-10/)  with Microsoft, said Jackie Siebens, director of public affairs at the company. Meanwhile, the head of the Department of Energy’s fusion program, Jean Paul Allain, said he believes pilot fusion plants are possible “in the 2030s,” while adding that there are some approaches that could “get there even faster.”
+
+Senators expressed support for continuing to pursue fusion energy, especially amid competition from China, but were doubtful that the technology is around the corner.
+
+“Despite decades of research and a rapid increase in global investment in fusion energy technologies, no one has been able to produce fusion energy at the grid level, commercial scale,” said Committee Chair Joe Manchin (I-WV) in his opening statement.
+
+The multinational ITER fusion research facility currently under construction in France announced this summer that the facility will not start full operations [until 2039](https://www.iter.org/newsline/-/4056)  — a four-year delay. Manchin contrasted that news with Helion’s claim that it can field a fusion power plant by 2028, which he said, “almost seems too good to be true.”
+
+“When can we realistically expect the first fusion power plant to be online?” Manchin asked the hearing witnesses. “With ITER being knocked back as far as it is, which really alarmed us, how do you expect something to come on quicker than that?”
+
+Siebens said that, unlike ITER’s tokamak design, Helion is pursuing a pulsed approach that repeatedly produces small amounts of fusion energy without needing to achieve steady-state operations.
+
+Allain clarified that ITER will not function as a power plant but will produce industrial know-how that will be broadly relevant to companies pursuing commercial machines. He added that the act of building the machine has already produced important supply chains for fusion components, pointing to this as a key complementarity between the publicly funded ITER project and the private fusion endeavors. Patrick White, research director at the Nuclear Innovation Alliance, also testified that public investment in fusion science gives private investors greater confidence in the technology.
+
+Allain highlighted DOE’s [new strategy](https://www.energy.gov/sites/default/files/2024-06/fes-building-bridges-vision.pdf)  for expanding public-private partnerships in fusion and creating a robust fusion technology manufacturing network. He also shared that DOE will publish its first fusion science and technology roadmap in the coming fiscal year. That roadmap will include guidance on how the industry can make progress and measure its success.
+
+“To realize fusion energy in a decadal timeframe, we must take bold action to address the critical scientific and technological gaps that remain and enable fusion energy to scale,” Allain said.
+
+### **Racing China to harness fusion**
+
+Various senators on the committee expressed concerns about increasing competition from China in the pursuit of fusion energy.
+
+“China is not only trying to beat us in science. They’re also working to corner the fusion energy supply chain by securing the market for critical materials needed to build fusion power plants,” Manchin said. Sen. John Barrasso (R-WY), ranking member of the committee, referenced a recent Wall Street Journal [article](https://www.wsj.com/world/china/china-us-fusion-race-4452d3be)  that suggests China is outspending the U.S. in fusion energy.
+
+Barrasso also noted the potential role of fusion in powering energy-hungry AI applications and data centers. “If we can’t provide these facilities with affordable and reliable power, America is going to cede its leadership position of these critical technologies,” he said. “China understands this. They understand the race for artificial intelligence is also a race to secure the energy to power the computers.”
+
+Barrasso also argued that China has the capacity to copy what the U.S. does and then “advance it in ways to get ahead of us, to leapfrog us.” Siebens offered support for this view later in the hearing, claiming that a Chinese company has openly said it plans to copy Helion’s design.
+
+Contrary to many of the concerns raised about China in the hearing, Sen. Angus King (I-ME) questioned why there was not more appetite to collaborate with China on fusion, given its potential environmental benefits.
+
+“Why does this have to be a competition with China? This isn’t a military technology. This is a civilian technology that’s going to affect all the rest of us. Why can’t this be a breakthrough in the relationship between our two countries where we work together?” King asked.
+
+“I’d love to see a world where we are all working aggressively together toward deploying an energy technology that, as Senator Manchin said earlier, could potentially bring about world peace. The reality for us as a company, right now, is we see the real race here beginning after we demonstrate and deploy that first machine,” Siebens replied. “We think it’s a national security issue to ensure that, here in the U.S. and along with our allies, we can secure a supply chain that enables us to dominate this marketplace. Because if we don’t, China will.”
+
+Related Topics
+
+* [Emerging Technologies](https://www.aip.org/emerging-technologies)
+
+More from FYI
+
+[![A page from NSF's former scientific integrity policy ripped in half. At the top of the page, the text says: It is the policy of this agency to: 1. prohibit political interference or inappropriate influence on scientific activities and the use of scientific information. ](https://aip.brightspotcdn.com/dims4/default/9970ada/2147483647/strip/true/crop/2973x1479+0+0/resize/840x418!/quality/90/?url=https%3A%2F%2Fk1-prod-aip.s3.us-east-2.amazonaws.com%2Fbrightspot%2F0a%2F84%2F7d52a8a64b248823e101f9b1568d%2Fscientific-integrity-policy.jpg)](https://www.aip.org/fyi/science-agencies-pull-political-interference-protections-from-scientific-integrity-policies)
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[Science Agencies Pull ‘Political Interference’ Protections From Scientific Integrity Policies](https://www.aip.org/fyi/science-agencies-pull-political-interference-protections-from-scientific-integrity-policies)
+
+September 11, 2026 04:24 PM
+
+[![A building exterior behind several green trees.](https://aip.brightspotcdn.com/dims4/default/8faee7c/2147483647/strip/true/crop/7978x3970+0+259/resize/840x418!/quality/90/?url=https%3A%2F%2Fk1-prod-aip.s3.us-east-2.amazonaws.com%2Fbrightspot%2Fa1%2F66%2F468beafe4db480572898a421e427%2F20260505-nsf-hq-cg-0026.jpg)](https://www.aip.org/fyi/astronomy-materials-science-awards-plummet-at-nsf)
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[Astronomy, Materials Science Awards Plummet at NSF](https://www.aip.org/fyi/astronomy-materials-science-awards-plummet-at-nsf)
+
+September 09, 2026 05:13 PM
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[DOJ Official Queried a Dozen Journals on ‘Partisan’ Views in 2025](https://www.aip.org/fyi/doj-official-queried-a-dozen-journals-on-partisan-views-in-2025)
+
+The Justice Department fulfilled the public records request for the letters just as their author departed the agency.
+
+September 09, 2026 01:32 PM
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[Congress Delays OMB Grantmaking Rule with Stopgap Funding Bill](https://www.aip.org/fyi/congress-delays-omb-grantmaking-rule-with-stopgap-funding-bill)
+
+The short-term funding bill seems likely to become law, which would block the rule until at least Dec. 11.
+
+September 02, 2026 11:14 AM
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[Funding Cuts, Public Trust, and AI Dominate Concerns for Physical Scientists, Survey Reveals](https://www.aip.org/fyi/funding-cuts-public-trust-and-ai-dominate-concerns-for-physical-scientists-survey-reveals)
+
+A new AIP survey finds nearly a fifth of physical scientists have lost federal funding since early 2025, with international travel and recruitment also affected.
+
+August 31, 2026 03:26 PM
+
+[FYI](https://www.aip.org/fyi)
+
+/
+
+Article
+
+[NSF Graduate Research Fellowships Expected to Fall Next Year](https://www.aip.org/fyi/nsf-graduate-research-fellowships-expected-to-fall-next-year)
+
+The program solicitation estimates a sharp decline in awards for 2027 despite recent signals of support from the White House.
+
+August 28, 2026 01:53 PM
+
+[Latest from Physics Today](https://physicstoday.aip.org/)
+
+[PHYSICS TODAY](https://physicstoday.aip.org)
+
+/
+
+Article
+
+[Dylan Spaulding merges science and politics to push for nuclear peace](https://physicstoday.aip.org/news/dylan-spaulding-merges-science-and-politics-to-push-for-nuclear-peace)
+
+September 11, 2026 02:25 PM
+
+[PHYSICS TODAY](https://physicstoday.aip.org)
+
+/
+
+Article
+
+[The 80-year nuclear legacy in the Marshall Islands](https://physicstoday.aip.org/features/the-80-year-nuclear-legacy-in-the-marshall-islands)
+
+An interview with a prominent member of the Marshallese diaspora delves into the ongoing impact of aboveground US nuclear weapons testing in the Pacific archipelago.
+
+September 10, 2026 12:45 PM
+
+[PHYSICS TODAY](https://physicstoday.aip.org)
+
+/
+
+Article
+
+[The shrinking NSF support for the physical sciences](https://physicstoday.aip.org/news/the-shrinking-nsf-support-for-the-physical-sciences)
+
+The agency has awarded fewer grants in the physical sciences this year than most years in its history.
+
+September 09, 2026 05:50 PM
+
+[PHYSICS TODAY](https://physicstoday.aip.org)
+
+/
+
+Article
+
+[Q&A: Missy Cummings strives to make self-driving cars safer](https://physicstoday.aip.org/news/q-a-missy-cummings-strives-to-make-self-driving-cars-safer)
+
+The former fighter pilot wants the designers of autonomous systems to heed the hard lessons from aviation.
+
+September 09, 2026 11:43 AM
+
+[PHYSICS TODAY](https://physicstoday.aip.org)
+
+/
+
+Article
+
+[NIST neutron source restarts after prolonged closure](https://physicstoday.aip.org/news/nist-neutron-source-restarts-after-prolonged-closure)
+
+The user community is cheering the availability of more neutrons for scattering experiments while also worrying that a budget shortfall will prevent their full exploitation.
+
+September 08, 2026 12:28 PM
+
+## Related Organizations
+
+[Senate Energy and Natural Resources Committee](https://www.aip.org/senate-energy-natural-resources-committee)
+
+[Department of Energy](https://www.aip.org/department-of-energy)
+
+[DOE Office of Science](https://www.aip.org/doe-science)
+
+ 
