@@ -232,3 +232,7 @@ p.weakened { border-left: 3px solid var(--orange); padding-left: 6px; }
 .lane-live { font-size: 11px; color: var(--accent); padding: 2px 4px; }
 .viewtoggle { display: inline-flex; gap: 2px; margin-right: 8px; }
 .viewtoggle button { padding: 1px 8px; font-size: 12px; }
+
+/* confidence as a continuous green -> red gradient (no numbers) */
+.legend i.gradbar { display: inline-block; width: 72px; height: 9px; border-radius: 5px; margin: 0 4px; vertical-align: -1px;
+  background: linear-gradient(90deg, hsl(140 62% 38%), hsl(72 62% 41%), hsl(38 62% 43%), hsl(4 62% 44%)); }

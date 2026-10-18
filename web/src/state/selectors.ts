@@ -29,6 +29,17 @@ export function nodeTone(st: RunState, id: string): Tone {
   return "red";
 }
 
+/**
+ * Continuous confidence colour: red (not confident) -> orange -> yellow -> green (confident).
+ * Backend confidences sit between 0.4 and 0.9, so that range spans the whole gradient.
+ * Undefined or 0 (not verified yet) returns undefined so callers keep the grey.
+ */
+export function confColor(c: number | undefined): string | undefined {
+  if (c === undefined || c === 0) return undefined;
+  const t = Math.min(1, Math.max(0, (c - 0.4) / 0.5));
+  return `hsl(${Math.round(4 + t * 136)} 62% ${Math.round(44 - t * 6)}%)`;
+}
+
 export const toneLabel: Record<Tone, string> = {
   green: "well supported",
   orange: "partly supported",

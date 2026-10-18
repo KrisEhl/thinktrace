@@ -1,6 +1,6 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { useStore } from "../state/store";
-import { claimNumber, claimTone, claimUsage, nodeConfidence, nodeTone, notes, toneLabel } from "../state/selectors";
+import { claimNumber, claimTone, claimUsage, confColor, nodeConfidence, nodeTone, notes, toneLabel } from "../state/selectors";
 import { gbSize } from "../graph/layout";
 
 const verdictGlyph = { yes: "✓", no: "✕", uncertain: "?" } as const;
@@ -32,8 +32,8 @@ export function GbNode({ data }: NodeProps) {
   return (
     <div
       className={`gb tone-${tone} ${selected ? "sel" : ""} ${flash ? "flash" : ""} ${n.status === "running" ? "pulse" : ""} ${n.status === "deactivated" ? "dead" : ""} ${id === focusId ? "focus" : ""} kind-${n.kind}`}
-      style={{ width: size, height: size }}
-      title={`${n.label} · ${toneLabel[tone]}${conf !== undefined ? ` · confidence ${conf.toFixed(2)}` : ""}`}
+      style={{ width: size, height: size, ...(tone !== "off" && confColor(conf) ? { background: confColor(conf) } : {}) }}
+      title={`${n.label} · ${toneLabel[tone]}`}
     >
       <Handle type="target" position={Position.Top} style={centerHandle} />
       <Handle type="source" position={Position.Top} style={centerHandle} />
@@ -43,7 +43,6 @@ export function GbNode({ data }: NodeProps) {
         ) : (
           n.verdict && <span className="verdict">{verdictGlyph[n.verdict]}</span>
         )}
-        {conf !== undefined && n.kind !== "question" && <span className="conf">{conf.toFixed(2)}</span>}
         {stale && <span className="spin" aria-label="re-running" />}
       </div>
       <div className="gb-label">{n.label}</div>
@@ -131,7 +130,7 @@ export function ClaimNode({ data }: NodeProps) {
   if (!c || !usage) return null;
   const tone = claimTone(c);
   return (
-    <div className={`act claim tone-${tone} ${hl ? "hl" : ""} use-${usage.state}`} onClick={() => openClaim(c.id)}>
+    <div className={`act claim tone-${tone} ${hl ? "hl" : ""} use-${usage.state}`} style={confColor(c.confidence) ? { borderLeftColor: confColor(c.confidence) } : undefined} onClick={() => openClaim(c.id)}>
       {lanes}
       <div className="act-head">
         [c{claimNumber(c.id)}] {c.verified === null ? "checking quote…" : !c.verified ? "quote NOT found ✕" : c.match === "fuzzy" ? "near-match quote ≈" : c.verified_against === "snippet" ? "snippet quote ✓" : "quote verified ✓"}

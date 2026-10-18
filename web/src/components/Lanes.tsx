@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../state/store";
-import { claimNumber, claimTone, directionsUnder, laneItems, nodeConfidence, nodeTone, toneLabel, type LaneItem } from "../state/selectors";
+import { claimNumber, claimTone, confColor, directionsUnder, laneItems, nodeConfidence, nodeTone, toneLabel, type LaneItem } from "../state/selectors";
 import { profile, roleLabel, sourceMix } from "../state/credibility";
 import type { RunState } from "../state/reducer";
 
@@ -51,11 +51,10 @@ function Lane({ id }: { id: string }) {
       <header className="lane-head" onClick={() => select(id)}>
         {parent && parent.kind !== "question" && <div className="lane-parent">{short(parent.label, 34)} ›</div>}
         <div className="lane-title">
-          <span className={`dot ${tone}`} title={toneLabel[tone]} /> {short(n.label, 40)}
+          <span className={`dot ${tone}`} title={toneLabel[tone]} style={!dead && confColor(conf) ? { background: confColor(conf) } : undefined} /> {short(n.label, 40)}
         </div>
         <div className="lane-meta muted">
           {dead ? "✕ dropped" : live ? "● live" : n.status === "done" ? "✓ done" : "waiting"}
-          {conf !== undefined && ` · ${conf.toFixed(2)}`}
           {` · ${items.filter((x) => x.kind === "claim").length} claims`}
         </div>
         {mix.total > 0 && (
@@ -109,7 +108,7 @@ function Card({ item, run }: { item: LaneItem; run: RunState }) {
   const src = run.sources[c.source_id];
   const p = src ? profile(run, src) : undefined;
   return (
-    <div className={`card claim tone-${claimTone(c)}`} onClick={() => openSource(c.source_id, c.id)}>
+    <div className={`card claim tone-${claimTone(c)}`} style={confColor(c.confidence) ? { borderLeftColor: confColor(c.confidence) } : undefined} onClick={() => openSource(c.source_id, c.id)}>
       <div>
         <b className="cite">[c{claimNumber(c.id)}]</b> {c.value !== undefined && <b>{c.unit === "USD" ? `$${c.value.toLocaleString("en-US")}` : c.value} </b>}
         {short(c.text, 120)}

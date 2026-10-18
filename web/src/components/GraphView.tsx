@@ -156,7 +156,7 @@ export function GraphView() {
         )}
       </div>
       <div className="legend" hidden={view === "lanes" && kind !== "direction"}>
-        <i className="dot green" /> ≥0.75 <i className="dot orange" /> 0.5–0.75 <i className="dot red" /> &lt;0.5 <i className="dot grey" /> unverified <i className="dot off" /> off
+        confident <i className="gradbar" /> not confident <i className="dot grey" /> unverified <i className="dot off" /> off
       </div>
     </div>
   );

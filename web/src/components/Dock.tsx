@@ -13,6 +13,7 @@ import {
   claimsOfSource,
   claimTone,
   claimUsage,
+  confColor,
   decisionsOfNode,
   nodeConfidence,
   nodeTone,
@@ -104,8 +105,7 @@ function NodePanel() {
     <div className="pad">
       <h3>{n.label}</h3>
       <div className="row">
-        <span className={`chip tone-${tone}`}>{toneLabel[tone]}</span>
-        {conf !== undefined && <span className="chip">confidence {conf.toFixed(2)}</span>}
+        <span className={`chip tone-${tone}`} style={tone !== "off" && confColor(conf) ? { borderColor: confColor(conf), color: confColor(conf) } : undefined}>{toneLabel[tone]}</span>
         {n.verdict && <span className="chip">verdict: {n.verdict}</span>}
         <span className="chip">{n.status}</span>
       </div>
@@ -137,7 +137,7 @@ function NodePanel() {
           <h4>Contains</h4>
           {kids.map((k) => (
             <div key={k.id} className="item clickable" onClick={() => select(k.id)}>
-              <span className={`dot ${nodeTone(run, k.id)}`} /> {k.label}
+              <span className={`dot ${nodeTone(run, k.id)}`} style={nodeTone(run, k.id) !== "off" && confColor(nodeConfidence(run, k.id)) ? { background: confColor(nodeConfidence(run, k.id)) } : undefined} /> {k.label}
               <span className="muted"> · {toneLabel[nodeTone(run, k.id)]}</span>
             </div>
           ))}
@@ -167,7 +167,7 @@ function NodePanel() {
         const u = claimUsage(run, c);
         const src = run.sources[c.source_id];
         return (
-          <div key={c.id} className={`item claimcard tone-${claimTone(c)}`}>
+          <div key={c.id} className={`item claimcard tone-${claimTone(c)}`} style={confColor(c.confidence) ? { borderLeftColor: confColor(c.confidence) } : undefined}>
             <div>
               <Cite id={c.id} /> {c.text}
             </div>
