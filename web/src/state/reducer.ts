@@ -31,6 +31,7 @@ export interface RunState {
   needs_human: Record<string, string>; // node_id -> reason
   stop_reasons: Record<string, string>;
   recently_changed: Record<string, number>; // node_id -> event seq, drives the "what changed" cue
+  arrived: Record<string, number>; // "dec:<id>" / "clm:<id>" / "msg:<id>" -> event seq it arrived at, orders the lanes view
   seq: number;
 }
 
@@ -50,6 +51,7 @@ export const emptyRun = (): RunState => ({
   needs_human: {},
   stop_reasons: {},
   recently_changed: {},
+  arrived: {},
   seq: 0,
 });
 
@@ -97,6 +99,7 @@ export function applyEvent(prev: RunState, e: GlassboxEvent): RunState {
       return {
         ...st,
         claims: { ...st.claims, [e.claim.id]: e.claim },
+        arrived: { ...st.arrived, [`clm:${e.claim.id}`]: st.seq },
         nodes: n ? { ...st.nodes, [n.id]: { ...n } } : st.nodes,
         recently_changed: touch(st, e.claim.node_id),
       };
@@ -142,7 +145,13 @@ export function applyEvent(prev: RunState, e: GlassboxEvent): RunState {
             },
           }
         : st.nodes;
-      return { ...st, nodes, decisions: [...st.decisions, e.decision], recently_changed: touch(st, e.decision.node_id) };
+      return {
+        ...st,
+        nodes,
+        decisions: [...st.decisions, e.decision],
+        arrived: { ...st.arrived, [`dec:${e.decision.id}`]: st.seq },
+        recently_changed: touch(st, e.decision.node_id),
+      };
     }
     case "direction_stopped": {
       const n = st.nodes[e.node_id];
@@ -181,7 +190,8 @@ export function applyEvent(prev: RunState, e: GlassboxEvent): RunState {
     case "message": {
       const exists = st.messages.some((m) => m.id === e.message.id);
       const messages = exists ? st.messages.map((m) => (m.id === e.message.id ? e.message : m)) : [...st.messages, e.message];
-      return { ...st, messages, recently_changed: touch(st, e.message.node_id) };
+      const arrived = exists ? st.arrived : { ...st.arrived, [`msg:${e.message.id}`]: st.seq };
+      return { ...st, messages, arrived, recently_changed: touch(st, e.message.node_id) };
     }
     case "answer_updated":
       return {

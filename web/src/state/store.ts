@@ -19,6 +19,7 @@ interface Ui {
   follow: boolean; // auto-fit the graph while it grows, until the user pans/zooms
   highlightClaim: string | null; // the claim being traced (provenance chain)
   traceOnly: boolean; // activity layer shows only the traced path
+  view: "lanes" | "graph"; // vertical lanes per direction, or the zoomable graph
   rejectSource: string | null; // "what if I reject it" preview (client-side only, nothing is sent to the backend)
   notice: string | null; // short message in the stats bar (e.g. why a steer was refused)
 }
@@ -52,8 +53,8 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
   const setUi = (p: Partial<Ui>) => {
     set((s) => ({ ui: { ...s.ui, ...p } }));
     try {
-      const { railW, dockW, railOpen, traceOpen } = get().ui;
-      localStorage.setItem("gb-ui", JSON.stringify({ railW, dockW, railOpen, traceOpen }));
+      const { railW, dockW, railOpen, traceOpen, view } = get().ui;
+      localStorage.setItem("gb-ui", JSON.stringify({ railW, dockW, railOpen, traceOpen, view }));
     } catch {
       /* storage can be unavailable */
     }
@@ -82,6 +83,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       highlightClaim: null,
       traceOnly: true,
       rejectSource: null,
+      view: "lanes",
       notice: null,
       ...saved,
     },

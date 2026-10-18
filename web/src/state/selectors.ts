@@ -1,4 +1,4 @@
-import type { Claim, GraphNode, Source } from "../api/types";
+import type { Claim, Decision, GraphNode, Message, Source } from "../api/types";
 import type { RunState } from "./reducer";
 
 export const children = (st: RunState, id: string) => Object.values(st.nodes).filter((n) => n.parent_id === id);
@@ -86,6 +86,28 @@ export const answerSentencesCiting = (st: RunState, claim_id: string) =>
   st.answer.map((s, i) => ({ s, i })).filter(({ s }) => s.claim_ids.includes(claim_id));
 
 export const claimNumber = (id: string) => id.replace(/^c/, "");
+
+/** All directions at or under a node, depth first (follow-up branches sit right after their parent). */
+export const directionsUnder = (st: RunState, id: string): GraphNode[] => {
+  const n = st.nodes[id];
+  const here = n?.kind === "direction" ? [n] : [];
+  return [...here, ...children(st, id).flatMap((c) => directionsUnder(st, c.id))];
+};
+
+export type LaneItem =
+  | { kind: "decision"; key: string; d: Decision }
+  | { kind: "claim"; key: string; c: Claim }
+  | { kind: "message"; key: string; m: Message };
+
+/** One direction's activity in arrival order: what it searched and read, what it concluded, and what you told it. */
+export function laneItems(st: RunState, node_id: string): LaneItem[] {
+  const items: (LaneItem & { at: number })[] = [
+    ...st.decisions.filter((d) => d.node_id === node_id).map((d, i) => ({ kind: "decision" as const, key: `dec:${d.id}`, d, at: st.arrived[`dec:${d.id}`] ?? i })),
+    ...claimsOfNode(st, node_id).map((c, i) => ({ kind: "claim" as const, key: `clm:${c.id}`, c, at: st.arrived[`clm:${c.id}`] ?? i + 0.5 })),
+    ...st.messages.filter((m) => m.node_id === node_id && node_id !== "q").map((m, i) => ({ kind: "message" as const, key: `msg:${m.id}`, m, at: st.arrived[`msg:${m.id}`] ?? i })),
+  ];
+  return items.sort((a, b) => a.at - b.at);
+}
 
 export type SentenceImpact = "weakened" | "unsupported";
 

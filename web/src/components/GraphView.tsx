@@ -4,6 +4,7 @@ import "@xyflow/react/dist/style.css";
 import { useStore } from "../state/store";
 import { layoutLayer } from "../graph/layout";
 import { nodeTypes } from "./nodes";
+import { Lanes } from "./Lanes";
 
 const ZOOM_IN_AT = 1.9; // zooming past this with a node selected drills into it
 const ZOOM_OUT_AT = 0.35;
@@ -91,7 +92,7 @@ function Inner() {
 
 export function GraphView() {
   const run = useStore((s) => s.run);
-  const { focusId, follow, highlightClaim, traceOnly, rejectSource } = useStore((s) => s.ui);
+  const { focusId, follow, highlightClaim, traceOnly, rejectSource, view } = useStore((s) => s.ui);
   const { up, set, drill, openSource } = useStore.getState();
   const tracedHere = highlightClaim && run.claims[highlightClaim]?.node_id === focusId;
 
@@ -111,13 +112,19 @@ export function GraphView() {
           <h2>Ask a question to grow the graph</h2>
           <p>The question breaks into dimensions, then sub-questions. Zoom into any node to see what the agent is doing there.</p>
         </div>
+      ) : view === "lanes" && kind !== "direction" ? (
+        <Lanes />
       ) : (
         <ReactFlowProvider>
           <Inner />
         </ReactFlowProvider>
       )}
       <div className="crumbs">
-        <span className="layer">{layerName}</span>
+        <span className="viewtoggle">
+          <button className={view === "lanes" ? "on" : ""} onClick={() => set({ view: "lanes" })}>Lanes</button>
+          <button className={view === "graph" ? "on" : ""} onClick={() => set({ view: "graph", follow: true })}>Graph</button>
+        </span>
+        <span className="layer">{view === "lanes" && kind !== "direction" ? "Directions over time" : layerName}</span>
         {crumbs.map((id, i) => (
           <span key={id}>
             {i > 0 && " › "}
@@ -148,7 +155,7 @@ export function GraphView() {
           </span>
         )}
       </div>
-      <div className="legend">
+      <div className="legend" hidden={view === "lanes" && kind !== "direction"}>
         <i className="dot green" /> ≥0.75 <i className="dot orange" /> 0.5–0.75 <i className="dot red" /> &lt;0.5 <i className="dot grey" /> unverified <i className="dot off" /> off
       </div>
     </div>
