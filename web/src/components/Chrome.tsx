@@ -5,16 +5,11 @@ export function StatsBar() {
   const run = useStore((s) => s.run);
   const { railOpen, dockOpen, traceOpen, notice } = useStore((s) => s.ui);
   const { set } = useStore.getState();
-  const sources = Math.max(Object.keys(run.sources).length, run.cost.sources);
   const nodes = Object.values(run.nodes);
   const needs = Object.keys(run.needs_human).length;
   return (
     <header className="stats">
       <b className="brand">Glassbox</b>
-      <span className={`chip st-${run.status}`}>{run.status}</span>
-      <span>
-        {sources} sources · steered {run.cost.steers}× · {run.cost.restarts} restarts · €{run.cost.eur.toFixed(2)}
-      </span>
       {needs > 0 && <span className="chip warn">{needs} need you</span>}
       {nodes.some((n) => n.status === "stale") && <span className="chip warn">{nodes.filter((n) => n.status === "stale").length} of {nodes.filter((n) => n.kind === "direction").length} directions re-running</span>}
       {notice && (

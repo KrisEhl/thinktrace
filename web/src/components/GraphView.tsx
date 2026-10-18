@@ -10,14 +10,14 @@ const ZOOM_OUT_AT = 0.35;
 
 function Inner() {
   const run = useStore((s) => s.run);
-  const { focusId, follow, highlightClaim, traceOnly } = useStore((s) => s.ui);
+  const { focusId, follow, highlightClaim, traceOnly, rejectSource } = useStore((s) => s.ui);
   const { select, drill, up, set } = useStore.getState();
   const rf = useReactFlow();
   const programmatic = useRef(false);
 
   const { nodes, edges } = useMemo(
-    () => layoutLayer(run, focusId, { claim_id: highlightClaim, only: traceOnly }),
-    [run, focusId, highlightClaim, traceOnly],
+    () => layoutLayer(run, focusId, { claim_id: highlightClaim, only: traceOnly, reject: rejectSource }),
+    [run, focusId, highlightClaim, traceOnly, rejectSource],
   );
 
   // Fit when the layer changes, and while the graph grows (until the user pans or zooms by hand).
@@ -91,8 +91,8 @@ function Inner() {
 
 export function GraphView() {
   const run = useStore((s) => s.run);
-  const { focusId, follow, highlightClaim, traceOnly } = useStore((s) => s.ui);
-  const { up, set, drill } = useStore.getState();
+  const { focusId, follow, highlightClaim, traceOnly, rejectSource } = useStore((s) => s.ui);
+  const { up, set, drill, openSource } = useStore.getState();
   const tracedHere = highlightClaim && run.claims[highlightClaim]?.node_id === focusId;
 
   // breadcrumb: root > ... > focus
@@ -139,6 +139,12 @@ export function GraphView() {
               <button className="ghost" onClick={() => drill(run.claims[highlightClaim].node_id)}>go to path</button>
             )}
             <button className="ghost" onClick={() => set({ highlightClaim: null, follow: true })} title="Stop tracing">✕</button>
+          </span>
+        )}
+        {rejectSource && run.sources[rejectSource] && (
+          <span className="trace-chip reject-chip">
+            <button className="ghost" onClick={() => openSource(rejectSource)}>Without {run.sources[rejectSource].domain}</button>
+            <button className="ghost" onClick={() => set({ rejectSource: null })} title="Stop the reject preview">✕</button>
           </span>
         )}
       </div>

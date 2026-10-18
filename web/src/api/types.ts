@@ -58,6 +58,11 @@ export interface Claim {
   match?: "exact" | "fuzzy" | "not_found";
   verified_against?: "full_text" | "snippet";
   links?: ClaimLink[];
+  /** Dated numeric observation (e.g. a price seen at a seller on a day). Drives recency weighting and the forecast. */
+  value?: number;
+  unit?: string;
+  observed_at?: string; // ISO date
+  kind?: "volatile" | "event" | "stable";
 }
 
 export interface ClaimLink {

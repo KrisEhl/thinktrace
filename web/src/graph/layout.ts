@@ -1,7 +1,7 @@
 import type { Edge, Node } from "@xyflow/react";
 import type { GraphNode } from "../api/types";
 import type { RunState } from "../state/reducer";
-import { children, claimsOfNode, decisionsOfNode, provenance } from "../state/selectors";
+import { children, claimsOfNode, claimsOfSource, decisionsOfNode, provenance } from "../state/selectors";
 
 // Layers: the graph shows ONE layer at a time, centred on `focusId`.
 //   focus = question / dimension -> radial: focus in the middle, its children on a ring, grandchildren outside.
@@ -23,11 +23,16 @@ const edge = (id: string, source: string, target: string, extra: Partial<Edge> =
 export interface Trace {
   claim_id: string | null;
   only: boolean;
+  /** "What if I reject it" preview: this source and its claims are struck out, directions losing claims are marked. */
+  reject?: string | null;
 }
+
+const cls = (...xs: (string | false | undefined)[]) => xs.filter(Boolean).join(" ") || undefined;
 
 function radial(st: RunState, focusId: string, trace?: Trace): LayerResult {
   // While tracing, mark the direction that holds the traced claim.
   const tracedDir = trace?.claim_id ? st.claims[trace.claim_id]?.node_id : undefined;
+  const hit = new Set(trace?.reject ? claimsOfSource(st, trace.reject).map((c) => c.node_id) : []);
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   const put = (n: GraphNode, cx: number, cy: number, depth: number) => {
@@ -38,7 +43,7 @@ function radial(st: RunState, focusId: string, trace?: Trace): LayerResult {
       position: { x: cx - size / 2, y: cy - size / 2 },
       data: { id: n.id, size, depth },
       draggable: true,
-      className: tracedDir && n.id === tracedDir ? "on-path" : undefined,
+      className: cls(tracedDir === n.id && "on-path", hit.has(n.id) && "hit"),
     });
   };
   const focus = st.nodes[focusId];
@@ -142,6 +147,10 @@ function activity(st: RunState, focusId: string, trace?: Trace): LayerResult {
   if (tracing) {
     for (const n of nodes) n.className = onPath.has(n.id) ? "on-path" : linkedHere.has(n.id.replace(/^clm:/, "")) ? "linked" : "dim";
     for (const e of edges) if (onPath.has(e.source) && onPath.has(e.target)) e.className = `${e.className ?? ""} path`;
+  }
+  if (trace?.reject) {
+    const struck = new Set([`src:${trace.reject}`, ...claimsOfSource(st, trace.reject).map((c) => `clm:${c.id}`)]);
+    for (const n of nodes) if (struck.has(n.id)) n.className = cls(n.className, "rejected");
   }
   // Follow-up branches grown from this direction sit to the right and can be drilled into.
   children(st, focusId).forEach((k, i) => {

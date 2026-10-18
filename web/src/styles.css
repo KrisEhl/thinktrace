@@ -162,3 +162,46 @@ p.changed { background: #f3e27a1f; border-left: 3px solid var(--note); padding-l
 p.traced { outline: 2px solid var(--note); outline-offset: 2px; border-radius: 3px; }
 .crumbs { flex-wrap: nowrap; white-space: nowrap; max-width: calc(100% - 20px); overflow: hidden; }
 .crumbs button { white-space: nowrap; }
+
+/* reverse trace + reject preview */
+.impactcard { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
+.impactcard.on { border-color: var(--red); background: #cf4a3c0d; }
+.impactcard p { margin: 2px 0 6px; }
+.impact-claim, .impact-sent { font-size: 12px; padding: 3px 0; }
+.impact-sent { cursor: pointer; }
+.impact-claim .struck, .impact-sent.unsupported .said { text-decoration: line-through; text-decoration-color: var(--red); opacity: .6; }
+.impact-sent.weakened { border-left: 3px solid var(--orange); padding-left: 6px; }
+.impact-sent.unsupported { border-left: 3px solid var(--red); padding-left: 6px; }
+button.danger { border-color: var(--red); color: var(--red); background: transparent; }
+p.unsupported { text-decoration: line-through; text-decoration-color: var(--red); opacity: .45; }
+p.weakened { border-left: 3px solid var(--orange); padding-left: 6px; }
+.cite-lost .cite { text-decoration: line-through; color: var(--red); }
+.reject-banner { border-color: var(--red); }
+.reject-banner a { cursor: pointer; }
+.reject-chip { color: var(--red); }
+.react-flow__node.rejected .act { opacity: .45; outline: 2px dashed var(--red); outline-offset: 2px; }
+.react-flow__node.rejected .act-q { text-decoration: line-through; text-decoration-color: var(--red); }
+.react-flow__node.hit .gb { box-shadow: 0 0 0 3px var(--red); }
+
+/* source credibility */
+.cred { margin: 4px 0; font-size: 12px; }
+.chip.role-rated { border-color: var(--green); color: var(--green); }
+.chip.role-institution { border-color: var(--accent); color: var(--accent); }
+.chip.role-party { border-color: var(--orange); color: var(--orange); }
+.chip.role-unrated { border-color: var(--grey); color: var(--muted); }
+.mixbar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--panel2); margin: 4px 0; gap: 1px; }
+.mixbar span.role-rated { background: var(--green); } .mixbar span.role-institution { background: var(--accent); }
+.mixbar span.role-party { background: var(--orange); } .mixbar span.role-unrated { background: var(--grey); }
+
+/* price over time */
+.pricechart { margin: 4px 0 8px; }
+.pricechart .hero b { font-size: 20px; }
+.pricechart svg { display: block; margin: 6px 0; }
+.pricechart .grid { stroke: var(--line); stroke-width: 1; }
+.pricechart .axis { fill: var(--muted); font-size: 9px; }
+.pricechart .today { stroke: var(--muted); stroke-dasharray: 2 3; }
+.pricechart .ref { stroke: var(--muted); stroke-dasharray: 6 4; }
+.pricechart .band { fill: var(--accent); fill-opacity: .15; }
+.pricechart .projline { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 3; }
+.pricechart .obs { stroke: var(--panel); stroke-width: 2; cursor: pointer; }
+.legend-row { font-size: 11px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

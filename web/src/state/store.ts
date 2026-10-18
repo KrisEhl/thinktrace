@@ -19,6 +19,7 @@ interface Ui {
   follow: boolean; // auto-fit the graph while it grows, until the user pans/zooms
   highlightClaim: string | null; // the claim being traced (provenance chain)
   traceOnly: boolean; // activity layer shows only the traced path
+  rejectSource: string | null; // "what if I reject it" preview (client-side only, nothing is sent to the backend)
   notice: string | null; // short message in the stats bar (e.g. why a steer was refused)
 }
 
@@ -80,6 +81,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       follow: true,
       highlightClaim: null,
       traceOnly: true,
+      rejectSource: null,
       notice: null,
       ...saved,
     },
@@ -87,7 +89,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
     async start(question, scenario) {
       unsub?.();
       set({ run: { ...emptyRun(), status: "running", question } });
-      setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node" });
+      setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node", rejectSource: null });
       try {
         const { run_id } = await transport.createRun({ question, scenario });
         set((s) => ({ run: { ...s.run, run_id } }));
@@ -102,7 +104,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       // The event stream replays from seq 0, so a fresh state plus a subscription rebuilds the whole run.
       if (transport.getGraph) set({ run: fromSnapshot(await transport.getGraph(run_id)) });
       else set({ run: { ...emptyRun(), status: "running", run_id } });
-      setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node" });
+      setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node", rejectSource: null });
       attach(run_id);
     },
 

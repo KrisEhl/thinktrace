@@ -187,4 +187,5 @@ export function scriptedRun(run_id: string): Step[] {
 export const SCENARIOS = [
   { id: "vendor", label: "Vendor due diligence (10 nodes, ~30 s)", question: QUESTION },
   { id: "market", label: "Market scan (30 nodes, ~60 s, chat notes)", question: "Should a mid-size German retailer deploy autonomous warehouse robots in 2027?" },
+  { id: "gpu", label: "RTX 5090 price: readings + time projection (synthetic)", question: "What is the price of an RTX 5090? (synthetic data)" },
 ];

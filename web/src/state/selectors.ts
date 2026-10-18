@@ -87,6 +87,39 @@ export const answerSentencesCiting = (st: RunState, claim_id: string) =>
 
 export const claimNumber = (id: string) => id.replace(/^c/, "");
 
+export type SentenceImpact = "weakened" | "unsupported";
+
+/**
+ * Reverse trace of one source: the claims quoted from it, the answer sentences citing those claims, and a
+ * client-side "what if I reject it" preview. A sentence becomes unsupported when every claim it cites is lost
+ * (quoted from this source, or already failed its quote check); weakened when some cited claims survive.
+ */
+export function rejectImpact(st: RunState, source_id: string) {
+  const claims = claimsOfSource(st, source_id);
+  const lost = new Set(claims.map((c) => c.id));
+  const byIndex: (SentenceImpact | undefined)[] = [];
+  const sentences = st.answer.flatMap((s, i) => {
+    const hit = s.claim_ids.filter((id) => lost.has(id));
+    if (!hit.length) return [];
+    const left = s.claim_ids.filter((id) => !lost.has(id) && st.claims[id]?.verified !== false);
+    const state: SentenceImpact = left.length ? "weakened" : "unsupported";
+    byIndex[i] = state;
+    return [{ s, i, lost: hit, left, state }];
+  });
+  const perNode: Record<string, number> = {};
+  for (const c of claims) perNode[c.node_id] = (perNode[c.node_id] ?? 0) + 1;
+  const directions = Object.entries(perNode).map(([node_id, n]) => ({ node_id, lost: n, total: claimsOfNode(st, node_id).length }));
+  // Claims from other sources that corroborate a lost one: the finding survives, though not cited by that sentence.
+  const backups = claims.flatMap((c) =>
+    Object.values(st.claims)
+      .filter((o) => !lost.has(o.id) && [...(c.links ?? []).filter((l) => l.target === o.id), ...(o.links ?? []).filter((l) => l.target === c.id)].some((l) => l.relation === "corroborates"))
+      .map((o) => ({ lost: c.id, backup: o.id })),
+  );
+  const source = st.sources[source_id];
+  const echoes = source ? Object.values(st.sources).filter((s) => s.origin_id === source.origin_id && s.id !== source_id) : [];
+  return { source, claims, sentences, byIndex, directions, backups, echoes };
+}
+
 /**
  * Provenance chain of one claim, from the answer down to the plan:
  * answer sentences -> claim -> quote -> source -> read / search decision (+ the agent's reason) -> direction -> plan reason.

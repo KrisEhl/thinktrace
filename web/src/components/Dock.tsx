@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { transport } from "../api";
-import type { Source } from "../api/types";
+import type { Claim, Source } from "../api/types";
+import { profile, roleLabel, sourceMix } from "../state/credibility";
+import { PriceChart } from "./PriceChart";
 import { useStore, type DockTab } from "../state/store";
 import {
   answerSentencesCiting,
@@ -15,6 +17,7 @@ import {
   nodeConfidence,
   nodeTone,
   originGroups,
+  rejectImpact,
   sourceUsage,
   toneLabel,
 } from "../state/selectors";
@@ -141,6 +144,24 @@ function NodePanel() {
         </>
       )}
 
+      {claims.some((c) => c.value !== undefined && c.kind === "volatile") && (
+        <>
+          <h4>Over time</h4>
+          <PriceChart
+            claims={claims}
+            refs={Object.values(run.claims)
+              .filter((c) => c.kind === "stable" && c.value !== undefined && c.unit === claims[0]?.unit)
+              .slice(0, 1)
+              .map((c) => ({ label: "list price", value: c.value! }))}
+          />
+        </>
+      )}
+      {claims.length > 0 && (
+        <>
+          <h4>Source mix</h4>
+          <SourceMix claims={claims} />
+        </>
+      )}
       {claims.length > 0 && <h4>Claims ({claims.length})</h4>}
       {claims.map((c) => {
         const u = claimUsage(run, c);
@@ -181,19 +202,34 @@ function NodePanel() {
 function AnswerPanel() {
   const run = useStore((s) => s.run);
   const traced = useStore((s) => s.ui.highlightClaim);
+  const rejectSource = useStore((s) => s.ui.rejectSource);
+  const { set, openSource } = useStore.getState();
   if (run.answer.length === 0) return <p className="muted pad">{run.status === "idle" ? "Run a question first." : "The answer is written after the research stops."}</p>;
   const unused = Object.values(run.claims).filter((c) => claimUsage(run, c).state === "unused");
+  const im = rejectSource ? rejectImpact(run, rejectSource) : null;
   return (
     <div className="pad">
       <h3>Answer{run.answer_meta.version > 0 ? ` v${run.answer_meta.version}` : ""}</h3>
+      {im && (
+        <div className="callout reject-banner">
+          Preview without <a onClick={() => openSource(rejectSource!)}>{im.source?.domain ?? rejectSource}</a>: {im.sentences.filter((x) => x.state === "unsupported").length} sentence(s) lose all support (struck out),{" "}
+          {im.sentences.filter((x) => x.state === "weakened").length} weakened.{" "}
+          <button className="ghost" onClick={() => set({ rejectSource: null })}>✕ stop preview</button>
+        </div>
+      )}
       <p className="muted">
         Every sentence cites claim ids. Click one to see the quote and the source.
         {run.answer_meta.dropped.length > 0 && ` ${run.answer_meta.dropped.length} uncited sentence(s) were dropped.`}
         {run.answer_meta.changed.length > 0 && ` Highlighted: changed since the previous version.`}
       </p>
       {run.answer.map((s, i) => (
-        <p key={i} className={`${s.claim_ids.length === 0 ? "gap" : ""} ${traced && s.claim_ids.includes(traced) ? "traced" : ""} ${run.answer_meta.changed.some((c) => c.includes(s.text.slice(0, 40))) ? "changed" : ""}`}>
-          {s.text} {s.claim_ids.map((c) => <Cite key={c} id={c} />)}
+        <p key={i} className={`${s.claim_ids.length === 0 ? "gap" : ""} ${traced && s.claim_ids.includes(traced) ? "traced" : ""} ${run.answer_meta.changed.some((c) => c.includes(s.text.slice(0, 40))) ? "changed" : ""} ${im?.byIndex[i] ?? ""}`}>
+          {s.text}{" "}
+          {s.claim_ids.map((c) => (
+            <span key={c} className={im && run.claims[c]?.source_id === rejectSource ? "cite-lost" : ""}>
+              <Cite id={c} />
+            </span>
+          ))}
         </p>
       ))}
       {unused.length > 0 && (
@@ -268,11 +304,13 @@ function SourceViewer() {
   return (
     <div className="pad">
       {target.claim_id && <TraceCard claim_id={target.claim_id} />}
+      <ImpactCard source_id={src.id} />
       <h3>{src.title}</h3>
       <div className="muted">
         <a href={src.url} target="_blank" rel="noreferrer">{src.domain}</a> · origin <code>{src.origin_id}</code>
         {sameOrigin.length > 0 && <> · counts as one with {sameOrigin.map((s) => s.domain).join(", ")} (echo)</>}
       </div>
+      <CredChip source={src as Source} />
       <div className={`use use-${usage.state}`}>{usage.state === "used" ? `● ${usage.used} claim(s) from here are used in the answer` : usage.state === "pending" ? "○ answer pending" : "○ nothing from this source is used in the answer"}</div>
       {noText ? (
         <div className="callout">
@@ -388,6 +426,114 @@ function TraceCard({ claim_id }: { claim_id: string }) {
   );
 }
 
+/* ---------- Credibility ---------- */
+
+function CredChip({ source }: { source: Source }) {
+  const run = useStore((s) => s.run);
+  const p = profile(run, source);
+  return (
+    <div className="cred">
+      <span className={`chip role-${p.role}`}>{roleLabel[p.role]} · {p.quality.toFixed(2)}</span> <span className="muted">{p.basis}</span>
+    </div>
+  );
+}
+
+function SourceMix({ claims }: { claims: Claim[] }) {
+  const run = useStore((s) => s.run);
+  const mix = sourceMix(run, claims);
+  if (!mix.total) return null;
+  return (
+    <div className="mix">
+      <div className="mixbar" title="Share of evidence weight (quality × quote check × independence) by kind of source">
+        {mix.shares.map((x) => (
+          <span key={x.role} className={`role-${x.role}`} style={{ flexBasis: `${x.share * 100}%` }} />
+        ))}
+      </div>
+      <div className="muted">
+        {mix.shares.map((x) => `${roleLabel[x.role]} ${Math.round(x.share * 100)}%`).join(" · ")}
+      </div>
+      {mix.blindspot && <div className="callout">Blindspot: most of this rests on {roleLabel[mix.blindspot]} sources.</div>}
+    </div>
+  );
+}
+
+/* ---------- Reverse trace ---------- */
+
+const short = (t: string, n = 140) => (t.length > n ? t.slice(0, n - 1) + "…" : t);
+
+function ImpactCard({ source_id }: { source_id: string }) {
+  const run = useStore((s) => s.run);
+  const rejecting = useStore((s) => s.ui.rejectSource === source_id);
+  const { set, drill, select } = useStore.getState();
+  const im = rejectImpact(run, source_id);
+  const unsupported = im.sentences.filter((x) => x.state === "unsupported").length;
+  const weakened = im.sentences.length - unsupported;
+  const toggle = () => {
+    if (rejecting) return set({ rejectSource: null });
+    // Show the hit in the graph: the one direction's activity layer, or the root ring when several are hit.
+    const dirs = im.directions.map((d) => d.node_id);
+    if (dirs.length === 1) drill(dirs[0]);
+    else set({ focusId: "q", follow: true });
+    set({ rejectSource: source_id });
+  };
+  if (!im.claims.length) return null;
+  return (
+    <div className={`impactcard ${rejecting ? "on" : ""}`}>
+      <div className="tracecard-head">
+        <b>What depends on this source</b>
+        <button className={rejecting ? "danger on" : "ghost"} onClick={toggle} title="Client-side preview; nothing is sent to the agent">
+          {rejecting ? "✕ stop preview" : "What if I reject it?"}
+        </button>
+      </div>
+      <p className="muted">
+        {im.claims.length} claim{im.claims.length === 1 ? "" : "s"} · {im.sentences.length} answer sentence{im.sentences.length === 1 ? "" : "s"} · {im.directions.length} direction{im.directions.length === 1 ? "" : "s"}
+        {im.echoes.length > 0 && ` · ${im.echoes.length} other source(s) share its origin and stay`}
+      </p>
+      {rejecting && (
+        <div className="callout">
+          Preview: without this source, <b>{unsupported}</b> sentence{unsupported === 1 ? "" : "s"} lose all support and <b>{weakened}</b> keep other citations.
+          {im.backups.length > 0 && ` ${im.backups.length} lost claim(s) are corroborated elsewhere.`}
+        </div>
+      )}
+      {im.claims.map((c) => {
+        const cited = im.sentences.filter((x) => x.lost.includes(c.id));
+        const backup = im.backups.filter((b) => b.lost === c.id);
+        return (
+          <div key={c.id} className="impact-claim">
+            <span className={rejecting ? "struck" : ""}>
+              <Cite id={c.id} /> {short(c.text, 110)}
+            </span>
+            {cited.length === 0 && <span className="muted"> · not cited in the answer</span>}
+            {rejecting && backup.length > 0 && (
+              <div className="muted">
+                still corroborated by {backup.map((b) => <Cite key={b.backup} id={b.backup} />)}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {im.sentences.length > 0 && <h4>Answer sentences citing it</h4>}
+      {im.sentences.map((x) => (
+        <div key={x.i} className={`impact-sent ${rejecting ? x.state : ""}`} onClick={() => set({ dockTab: "answer" })}>
+          <span className="muted">{x.i + 1}.</span> <span className="said">“{short(x.s.text)}”</span>
+          {rejecting && (
+            <div className="muted">
+              {x.state === "unsupported" ? "✕ loses all support" : <>⚠ still cites {x.left.map((id) => <Cite key={id} id={id} />)}</>}
+            </div>
+          )}
+        </div>
+      ))}
+      <h4>Directions</h4>
+      {im.directions.map((d) => (
+        <div key={d.node_id} className="item clickable" onClick={() => select(d.node_id)}>
+          <span className={`dot ${nodeTone(run, d.node_id)}`} /> {run.nodes[d.node_id]?.label ?? d.node_id}
+          <span className="muted"> · {d.lost} of {d.total} claims from here</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ---------- Ledger ---------- */
 
 function Ledger() {
@@ -413,7 +559,8 @@ function Ledger() {
             const u = sourceUsage(run, s);
             return (
               <div key={s.id} className="clickable" onClick={() => openSource(s.id)}>
-                <span className={`use use-${u.state}`}>{u.state === "used" ? "●" : "○"}</span> {s.domain} <span className="muted">· {s.title}</span>
+                <span className={`use use-${u.state}`}>{u.state === "used" ? "●" : "○"}</span> {s.domain}{" "}
+                <span className={`chip role-${profile(run, s).role}`}>{roleLabel[profile(run, s).role]} {profile(run, s).quality.toFixed(2)}</span> <span className="muted">· {s.title}</span>
                 <div className="chips">
                   {u.claims.map((c) => (
                     <button key={c.id} className={`cite ${claimUsage(run, c).state}`} onClick={(e) => { e.stopPropagation(); openClaim(c.id); }}>

@@ -2,6 +2,7 @@ import type { CreateRunRequest, GlassboxEvent, GraphSnapshot, SimOp, Source, Ste
 import { applyEvent, emptyRun, type RunState } from "../state/reducer";
 import { children } from "../state/selectors";
 import { SCENARIOS, scriptedRun, SOURCES, type Step } from "./fixture";
+import { gpuRun } from "./gpu";
 import { marketRun } from "./market";
 import { compose, labelFrom, research } from "./sim";
 
@@ -169,7 +170,7 @@ export function mockTransport(speed = 1): Transport {
       state = emptyRun();
       log = [];
       const run_id = `run-${Date.now().toString(36)}`;
-      play(req.scenario === "market" ? marketRun(run_id) : scriptedRun(run_id));
+      play(req.scenario === "market" ? marketRun(run_id) : req.scenario === "gpu" ? gpuRun(run_id) : scriptedRun(run_id));
       return { run_id };
     },
 
