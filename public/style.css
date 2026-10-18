@@ -784,3 +784,13 @@ h1 {
   font-size: 16px;
   margin-top: 12px;
 }
+
+.sample {
+  font-family: var(--pixel);
+  font-size: 6px;
+  color: var(--dim);
+  border: 1px solid var(--line);
+  padding: 2px 3px;
+  margin-left: 6px;
+  vertical-align: 3px;
+}

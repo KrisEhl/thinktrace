@@ -22,7 +22,8 @@ const blank = () => ({
 });
 
 function entry(model) {
-  if (!stats.has(model)) stats.set(model, blank());
+  // Sample rows (npm run seed) make way for real data the first time a model is played.
+  if (!stats.has(model) || stats.get(model).seed) stats.set(model, blank());
   return stats.get(model);
 }
 
@@ -79,6 +80,7 @@ export function modelStandings() {
         avgSeconds: Math.round(e.durationMs / e.runs / 1000),
         avgReads: Math.round((e.reads / e.runs) * 10) / 10,
         trust: Math.round(100 * (0.6 * survival + 0.4 * quoteAccuracy)),
+        sample: Boolean(e.seed),
       };
     })
     .sort((a, b) => b.trust - a.trust || b.runs - a.runs);

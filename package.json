@@ -11,7 +11,8 @@
     "mock": "node scripts/dev-mock.js",
     "mock:dev": "node --watch scripts/dev-mock.js",
     "demo": "NEBIUS_API_KEY= TAVILY_API_KEY= node server.js",
-    "check": "node scripts/check.js"
+    "check": "node scripts/check.js",
+    "seed": "node scripts/seed-leaderboard.js"
   },
   "license": "MIT"
 }

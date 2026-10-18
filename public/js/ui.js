@@ -139,11 +139,12 @@ export function setPoints(total) {
 }
 
 const MEDAL = ['🥇', '🥈', '🥉'];
+const SAMPLE = '<span class="sample" title="Seeded demo data">SAMPLE</span>';
 
 export function renderLeaderboard(data, { demo } = {}) {
   const row = (p) => `<tr class="${p.you ? 'you' : ''}">
       <td class="rank">${MEDAL[p.rank - 1] ? `<span class="medal">${MEDAL[p.rank - 1]}</span>` : `#${p.rank}`}</td>
-      <td><span class="name">${esc(p.name)}</span>${p.lastTakedown ? `<div class="last">last takedown: “${esc(p.lastTakedown)}”</div>` : ''}</td>
+      <td><span class="name">${esc(p.name)}</span>${p.sample ? SAMPLE : ''}${p.lastTakedown ? `<div class="last">last takedown: “${esc(p.lastTakedown)}”</div>` : ''}</td>
       <td class="pts">${p.refuted}</td>
       <td class="pts">${p.points}</td>
     </tr>`;
@@ -154,7 +155,7 @@ export function renderLeaderboard(data, { demo } = {}) {
     ${data.top.length ? `<table class="board">
       <thead><tr><th>RANK</th><th>PLAYER</th><th class="pts">REFUTED</th><th class="pts">POINTS</th></tr></thead>
       <tbody>${data.top.map(row).join('')}${youOutside ? `<tr class="gap"><td colspan="4">…</td></tr>${row(data.you)}` : ''}</tbody>
-    </table>` : '<p>No points yet. Be the first to break a claim.</p>'}`;
+    </table>${data.top.some((p) => p.sample) ? '<p class="footnote">Players tagged SAMPLE are seeded demo entries.</p>' : ''}` : '<p>No points yet. Be the first to break a claim.</p>'}`;
 }
 
 const pct = (x) => (x == null ? '–' : `${Math.round(x * 100)}%`);
@@ -169,7 +170,7 @@ export function renderModelLeaderboard(data) {
     .map(
       (m) => `<tr>
       <td class="rank">${MEDAL[m.rank - 1] ? `<span class="medal">${MEDAL[m.rank - 1]}</span>` : `#${m.rank}`}</td>
-      <td><span class="model">${esc(shortModel(m.model))}</span>${m.model === data.easiestPrey ? '<span class="prey">EASIEST PREY</span>' : ''}
+      <td><span class="model">${esc(shortModel(m.model))}</span>${m.sample ? SAMPLE : ''}${m.model === data.easiestPrey ? '<span class="prey">EASIEST PREY</span>' : ''}
         <div class="sub">${m.runs} run${m.runs === 1 ? '' : 's'} · ${m.claims} claims · ~${m.avgSeconds}s · ${m.avgReads} pages read${m.failed ? ` · ${m.failed} failed` : ''}</div></td>
       <td class="num">${pct(m.quoteAccuracy)}</td>
       <td class="num">${m.challenged ? `<span style="color:var(--upheld)">${m.upheld}</span> / <span style="color:var(--weakened)">${m.weakened}</span> / <span style="color:var(--refuted)">${m.refuted}</span>` : '–'}</td>
@@ -185,7 +186,7 @@ export function renderModelLeaderboard(data) {
       <thead><tr><th>RANK</th><th>MODEL</th><th class="pts">QUOTES OK</th><th class="pts">UP / WEAK / REF</th><th class="pts">SURVIVAL</th><th class="pts">TRUST</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
-    <p class="footnote">Quotes OK: share of quotes found word for word in the fetched source. Survival: share of fact-checked claims that held up (weakened counts half). Trust = 60% survival + 40% quotes OK, smoothed so one lucky run can't top the table. Easiest prey: the model whose claims get refuted most often (min. 3 checks), so the best one to hunt for points.</p>`
+    <p class="footnote">Quotes OK: share of quotes found word for word in the fetched source. Survival: share of fact-checked claims that held up (weakened counts half). Trust = 60% survival + 40% quotes OK, smoothed so one lucky run can't top the table. Easiest prey: the model whose claims get refuted most often (min. 3 checks), so the best one to hunt for points.${data.models.some((m) => m.sample) ? ' Rows tagged SAMPLE are seeded demo data, not measured results; they are replaced by real data once that model is played.' : ''}</p>`
     : '<p>No runs yet. Pick a model on the start screen and play a round.</p>'}`;
 }
 

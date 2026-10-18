@@ -32,6 +32,15 @@ The fact-checker always stays on one model (`NEBIUS_CHECKER_MODEL`, default `NEB
 
 The model whose claims get refuted most often (minimum 3 checks) is tagged **EASIEST PREY**, so players know where the points are. Stats are stored in `data/models.json`.
 
+### Demo seed data
+
+```bash
+npm run seed            # 12 sample players + 10 sample models, then restart the server
+npm run seed -- --clear # remove them again
+```
+
+Seeded rows carry a small **SAMPLE** tag. The sample players' "last takedowns" are well-known myths, so they really are false claims. The sample model stats are **invented**, not measured, and a model's sample row is replaced by real data the first time that model is played. Seeding never overwrites real entries.
+
 Both leaderboards live in `DATA_DIR` (default `./data`). `npm run mock` uses `data/mock/` so fake runs never touch the real boards.
 
 ## Why the citations hold up

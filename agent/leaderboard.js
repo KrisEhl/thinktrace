@@ -46,6 +46,7 @@ export function standings(playerId, limit = 20) {
     refuted: e.refuted,
     lastTakedown: e.lastTakedown?.claim ?? '',
     you: id === playerId,
+    sample: Boolean(e.seed),
   });
   const index = all.findIndex(([id]) => id === playerId);
   return {
