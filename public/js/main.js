@@ -419,7 +419,7 @@ function explode(x, y, radius) {
     }
   });
   particles.burst(x, y, Math.min(40, 4 + radius * 2), ['#ffffff', '#ffe066', '#ff9f43'], 40 + radius * 8, 0.25);
-  game.fx.push({ x, y, r: radius, t: 0, word: radius >= 10 * K ? WORDS[Math.floor(Math.random() * WORDS.length)] : null });
+  game.fx.push({ x, y, r: radius, t: 0, seed: Math.random() * 100, word: radius >= 10 * K ? WORDS[Math.floor(Math.random() * WORDS.length)] : null });
   for (let i = 0; i < Math.min(12, radius / K); i++) {
     // smoke puffs drifting up
     particles.add(x + (Math.random() - 0.5) * radius, y + (Math.random() - 0.5) * radius, (Math.random() - 0.5) * 20 * K, -(10 + Math.random() * 25) * K, Math.random() < 0.5 ? '#6b6478' : '#4d4757', 1 + Math.random(), Math.round(3 * K), false);
@@ -502,7 +502,7 @@ function update(dt) {
   }
   game.grenades = game.grenades.filter((g) => g.fuse > 0);
   for (const f of game.fx) f.t += dt;
-  game.fx = game.fx.filter((f) => f.t < 0.9);
+  game.fx = game.fx.filter((f) => f.t < FX_LIFE);
   particles.update(dt, world);
 
   // Camera: follow the player, peek toward the cursor.
@@ -664,31 +664,156 @@ function drawProjectiles(sx, sy) {
   }
 }
 
-// Explosion flash rings and comic words.
+// Explosions live on the world's pixel grid and step at 30 fps like a sprite: an impact
+// frame, a boiling fireball that cools into smoke, a shockwave, spark rays and a comic
+// burst. They fade by ordered dithering rather than alpha, so edges stay hard.
+const FX_LIFE = 1;
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const FIRE = ['#ffffff', '#ffe066', '#ff9f43', '#e63946', '#8d8799', '#6b6478', '#4d4757'];
+const INK = '#120c1e';
+const hash = (s, i) => {
+  const v = Math.sin(s * 12.9898 + i * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+};
+const easeOut = (k) => 1 - Math.pow(1 - Math.min(1, Math.max(0, k)), 3);
+
 function drawFx(sx, sy) {
+  const c = Math.max(2, Math.round(1.5 * K));
+  const cells = new Map(); // packed grid cell -> color; later writes paint over earlier ones
+  const key = (gx, gy) => (gx + 16384) * 32768 + (gy + 16384);
+  const shown = (gx, gy, a) => a >= 1 || BAYER[(gx & 3) + (gy & 3) * 4] < a * 16;
+  const put = (gx, gy, color, a = 1) => {
+    if (shown(gx, gy, a)) cells.set(key(gx, gy), color);
+  };
+  const under = (gx, gy, color, a = 1) => {
+    if (shown(gx, gy, a) && !cells.has(key(gx, gy))) cells.set(key(gx, gy), color);
+  };
+  const blob = (cx, cy, reach, fn) => {
+    for (let gx = Math.floor((cx - reach) / c); gx <= Math.floor((cx + reach) / c); gx++) {
+      for (let gy = Math.floor((cy - reach) / c); gy <= Math.floor((cy + reach) / c); gy++) fn(gx, gy, (gx + 0.5) * c - cx, (gy + 0.5) * c - cy);
+    }
+  };
+  const ring = (cx, cy, r, color, a) => {
+    const n = Math.ceil(((Math.PI * 2 * r) / c) * 1.5);
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * Math.PI * 2;
+      put(Math.floor((cx + Math.cos(ang) * r) / c), Math.floor((cy + Math.sin(ang) * r) / c), color, a);
+    }
+  };
+
+  let flash = 0;
   for (const f of game.fx) {
-    const x = f.x - sx;
-    const y = f.y - sy;
-    if (f.t < 0.25) {
-      const k = f.t / 0.25;
-      ctx.globalAlpha = 1 - k;
-      ctx.fillStyle = k < 0.3 ? '#ffffff' : k < 0.6 ? '#ffe066' : '#ff9f43';
-      ctx.beginPath();
-      ctx.arc(x, y, f.r * (0.7 + k * 0.9), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.globalAlpha = 1;
+    const t = Math.floor(f.t * 30) / 30;
+    const frame = Math.round(t * 30);
+    const big = f.r >= 10 * K;
+    const s = f.seed;
+    if (big && frame === 0) flash = 0.16;
+
+    if (big && t >= 0.1) {
+      // smoke puffs rolling up behind the fireball
+      const k = (t - 0.1) / 0.7;
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 + s;
+        const pr = f.r * (0.3 + 0.15 * hash(s, i)) * (0.7 + 0.6 * easeOut(k * 3));
+        const px = f.x + Math.cos(a) * f.r * (0.45 + 0.35 * k);
+        const py = f.y + Math.sin(a) * f.r * 0.35 - f.r * 0.3 - k * 48 * K;
+        blob(px, py, pr + 2 * c, (gx, gy, dx, dy) => {
+          const d = Math.hypot(dx, dy);
+          if (d < pr) put(gx, gy, dx + dy < -pr * 0.35 ? '#6b6478' : '#4d4757', 1 - k);
+          else if (d < pr + 1.5 * c) under(gx, gy, INK, 1 - k);
+        });
+      }
     }
-    if (f.word) {
-      const pop = Math.min(1, f.t / 0.12);
-      const size = Math.round(10 * K * (0.6 + 0.6 * pop));
-      ctx.font = `${size}px "Press Start 2P"`;
-      ctx.textBaseline = 'middle';
-      ctx.globalAlpha = f.t > 0.6 ? 1 - (f.t - 0.6) / 0.3 : 1;
-      const tw = ctx.measureText(f.word).width;
-      outlined(f.word, x - tw / 2, y - f.r - 8 * K - f.t * 20 * K, '#ffd23f');
-      ctx.globalAlpha = 1;
-      ctx.textBaseline = 'top';
+
+    const fade = 1 - Math.max(0, (t - 0.28) / 0.37);
+    if (fade > 0) {
+      // the core cools from white through yellow, orange and red into smoke
+      const R = f.r * (0.55 + 0.7 * easeOut(t / 0.12)) * (1 + 0.6 * Math.max(0, t - 0.2));
+      const cy = f.y - Math.max(0, t - 0.15) * 30 * K;
+      const heat = Math.min(1, t / 0.4) * 1.25;
+      blob(f.x, cy, R * 1.3 + 2 * c, (gx, gy, dx, dy) => {
+        const d = Math.hypot(dx, dy);
+        const a = Math.atan2(dy, dx);
+        const edge = R * (1 + 0.16 * (0.55 * Math.sin(3 * a + s) + 0.3 * Math.sin(5 * a + s * 2.1) + 0.15 * Math.sin(9 * a + s * 4.7)) + 0.07 * Math.sin(7 * a + frame * 1.9));
+        if (d < edge) put(gx, gy, frame === 0 ? '#ffffff' : FIRE[Math.min(FIRE.length - 1, Math.floor(((d / edge) * 0.85 + heat) / 0.28))], fade);
+        else if (d < edge + 1.5 * c) under(gx, gy, INK, fade);
+      });
     }
+
+    if (big && t < 0.3) {
+      const k = t / 0.3;
+      const rs = f.r * (1 + 1.7 * easeOut(k));
+      ring(f.x, f.y, rs, k < 0.35 ? '#ffffff' : '#ffe066', 1 - k);
+      if (k < 0.4) ring(f.x, f.y, rs - c, '#ffe066', 1 - k);
+    }
+
+    if (big && t < 0.24) {
+      // spark rays shoot out, then their tails catch up
+      const k = t / 0.24;
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 + s + (hash(s, i + 9) - 0.5) * 0.5;
+        const r0 = f.r * (1 + 1.3 * k * k);
+        const r1 = f.r * (1.15 + (0.9 + 0.5 * hash(s, i + 17)) * easeOut(k * 1.6));
+        for (let r = r0; r < r1; r += c) {
+          const color = r > r1 - 2 * c ? '#ffffff' : '#ffe066';
+          const gx = Math.floor((f.x + Math.cos(a) * r) / c);
+          const gy = Math.floor((f.y + Math.sin(a) * r) / c);
+          put(gx, gy, color);
+          if (r < r1 - c) put(gx + Math.round(-Math.sin(a)), gy + Math.round(Math.cos(a)), color);
+        }
+      }
+    }
+  }
+
+  // Comic words pop in on a starburst, settle, then blink out.
+  const words = [];
+  for (const f of game.fx) {
+    if (!f.word || f.t >= 0.9) continue;
+    const t = Math.floor(f.t * 30) / 30;
+    const frame = Math.round(t * 30);
+    if (t > 0.7 && frame % 2) continue;
+    const pop = frame < 2 ? 0.55 : frame < 4 ? 1.3 : frame < 5 ? 1.12 : 1;
+    const size = Math.round(10 * K * pop);
+    ctx.font = `${size}px "Press Start 2P"`;
+    const tw = ctx.measureText(f.word).width;
+    const wy = f.y - f.r - 14 * K - t * 18 * K;
+    const rx = tw / 2 + 9 * K * pop;
+    const ry = size / 2 + 9 * K * pop;
+    blob(f.x, wy, Math.max(rx, ry) + 2 * c, (gx, gy, dx, dy) => {
+      const turn = ((Math.atan2(dy / ry, dx / rx) + f.seed) / (Math.PI * 2)) * 14;
+      const lim = 0.68 + 0.32 * Math.abs((((turn % 1) + 1) % 1) * 2 - 1);
+      const e = Math.hypot(dx / rx, dy / ry);
+      if (e < lim) put(gx, gy, '#ffd23f');
+      else if (e < lim + (1.5 * c) / ry) put(gx, gy, INK);
+    });
+    words.push({ text: f.word, x: f.x - sx - tw / 2, y: wy - sy, size });
+  }
+
+  const byColor = new Map();
+  for (const [k, color] of cells) {
+    let list = byColor.get(color);
+    if (!list) byColor.set(color, (list = []));
+    list.push(k);
+  }
+  for (const [color, list] of byColor) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (const k of list) ctx.rect((Math.floor(k / 32768) - 16384) * c - sx, ((k % 32768) - 16384) * c - sy, c, c);
+    ctx.fill();
+  }
+
+  ctx.textBaseline = 'middle';
+  for (const w of words) {
+    ctx.font = `${w.size}px "Press Start 2P"`;
+    outlined(w.text, w.x, w.y, '#ff4d6d');
+  }
+  ctx.textBaseline = 'top';
+
+  if (flash) {
+    ctx.globalAlpha = flash;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, vw, vh);
+    ctx.globalAlpha = 1;
   }
 }
 
