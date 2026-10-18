@@ -26,6 +26,7 @@ export interface RunState {
   decisions: Decision[];
   messages: Message[];
   answer: AnswerSentence[];
+  answer_meta: { version: number; changed: string[]; dropped: string[] };
   cost: Cost;
   needs_human: Record<string, string>; // node_id -> reason
   stop_reasons: Record<string, string>;
@@ -44,6 +45,7 @@ export const emptyRun = (): RunState => ({
   decisions: [],
   messages: [],
   answer: [],
+  answer_meta: { version: 0, changed: [], dropped: [] },
   cost: { sources: 0, steers: 0, restarts: 0, eur: 0 },
   needs_human: {},
   stop_reasons: {},
@@ -182,7 +184,16 @@ export function applyEvent(prev: RunState, e: GlassboxEvent): RunState {
       return { ...st, messages, recently_changed: touch(st, e.message.node_id) };
     }
     case "answer_updated":
-      return { ...st, answer: e.answer };
+      return {
+        ...st,
+        answer: e.answer,
+        answer_meta: { version: e.version ?? st.answer_meta.version + 1, changed: e.changed ?? [], dropped: e.dropped ?? [] },
+      };
+    case "node_patch": {
+      const n = st.nodes[e.node_id];
+      if (!n) return st;
+      return { ...st, nodes: { ...st.nodes, [n.id]: { ...n, ...e.patch } }, recently_changed: touch(st, n.id) };
+    }
     case "cost_updated":
       return { ...st, cost: e.cost };
   }

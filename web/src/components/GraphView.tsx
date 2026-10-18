@@ -95,7 +95,10 @@ export function GraphView() {
   const crumbs: string[] = [];
   for (let id: string | null | undefined = focusId; id; id = run.nodes[id]?.parent_id) crumbs.unshift(id);
 
-  const layerName = run.nodes[focusId]?.kind === "direction" ? "Layer 3 · what the agent is doing" : run.nodes[focusId]?.kind === "dimension" ? "Layer 2 · sub-questions" : "Layer 1 · dimensions";
+  const kind = run.nodes[focusId]?.kind;
+  const kidsAreDirections = Object.values(run.nodes).some((n) => n.parent_id === focusId && n.kind === "direction");
+  const layerName =
+    kind === "direction" ? "What the agent is doing" : kind === "dimension" ? "Sub-questions" : kidsAreDirections ? "Research directions" : "Dimensions";
 
   return (
     <div className="graph">

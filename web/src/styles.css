@@ -137,3 +137,11 @@ mark sup { font-size: 9px; margin-left: 2px; }
 
 .composer select { width: 100%; margin-top: 6px; background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px; font: inherit; }
 .tabs button { font-size: 12px; padding: 7px 2px; }
+
+.notice { cursor: pointer; max-width: 46ch; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+p.changed { background: #f3e27a1f; border-left: 3px solid var(--note); padding-left: 6px; }
+.link-contradicts { color: var(--red); }
+.composer select optgroup { color: var(--muted); }
+.react-flow__edge.contradicts .react-flow__edge-path { stroke: var(--red); stroke-dasharray: 5 4; }
+.react-flow__edge.corroborates .react-flow__edge-path { stroke: var(--green); }
+.react-flow__edge.read .react-flow__edge-path { stroke: #9b7fe8; }

@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { isMock, transport } from "../api";
+import { useEffect, useState } from "react";
+import { backend, initialRun, isMock } from "../api";
+import type { RunInfo } from "../api/types";
+import { SCENARIOS } from "../mock/fixture";
 import { useStore } from "../state/store";
 import { circled } from "./nodes";
 import { claimNumber, notes } from "../state/selectors";
@@ -8,9 +10,26 @@ export function Rail() {
   const run = useStore((s) => s.run);
   const selectedId = useStore((s) => s.ui.selectedId);
   const { start, ask, reveal, openClaim } = useStore.getState();
-  const scenarios = transport.scenarios ?? [];
-  const [scenario, setScenario] = useState(scenarios[0]?.id ?? "");
-  const [text, setText] = useState(scenarios[0]?.question ?? "");
+  const scenarios = SCENARIOS;
+  const urlScenario = new URLSearchParams(location.search).get("scenario");
+  const [scenario, setScenario] = useState(scenarios.find((x) => x.id === urlScenario)?.id ?? scenarios[0].id);
+  const [text, setText] = useState(isMock ? (scenarios.find((x) => x.id === scenario)?.question ?? "") : "");
+  const [runs, setRuns] = useState<RunInfo[]>([]);
+  useEffect(() => {
+    backend.listRuns?.().then(setRuns).catch(() => setRuns([]));
+  }, []);
+  const picked = isMock ? `mock:${scenario}` : initialRun ? `run:${initialRun}` : "live";
+  const pick = (v: string) => {
+    if (v.startsWith("mock:") && isMock && !started) {
+      setScenario(v.slice(5));
+      setText(scenarios.find((x) => x.id === v.slice(5))?.question ?? "");
+      return;
+    }
+    const q = new URLSearchParams();
+    if (v.startsWith("mock:")) (q.set("mode", "mock"), q.set("scenario", v.slice(5)));
+    else if (v.startsWith("run:")) (q.set("run", v.slice(4)), q.set("speed", "4"));
+    location.search = q.toString();
+  };
   const started = run.status !== "idle";
   const sel = selectedId ? run.nodes[selectedId] : null;
   const numberOf = Object.fromEntries(notes(run).map((x) => [x.user.id, x.n]));
@@ -63,21 +82,25 @@ export function Rail() {
             }
           }}
         />
-        {!started && scenarios.length > 0 && (
-          <select
-            value={scenario}
-            onChange={(e) => {
-              setScenario(e.target.value);
-              setText(scenarios.find((x) => x.id === e.target.value)?.question ?? "");
-            }}
-          >
+        <select value={picked} onChange={(e) => pick(e.target.value)} title="Where the run comes from">
+          <option value="live">Live backend: ask a new question</option>
+          {runs.length > 0 && (
+            <optgroup label="Recorded / earlier runs">
+              {runs.map((r) => (
+                <option key={r.run_id} value={`run:${r.run_id}`}>
+                  {r.run_id} · {r.question.slice(0, 48)} ({r.status})
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <optgroup label="Mock (playground)">
             {scenarios.map((x) => (
-              <option key={x.id} value={x.id}>{x.label}</option>
+              <option key={x.id} value={`mock:${x.id}`}>{x.label}</option>
             ))}
-          </select>
-        )}
+          </optgroup>
+        </select>
         <div className="composer-row">
-          <span className="muted">{isMock ? "mock backend" : "live backend"}</span>
+          <span className="muted">{isMock ? "mock backend" : initialRun ? `run ${initialRun}` : "live backend"}</span>
           <button className="primary" onClick={submit}>
             {started ? "Ask" : "Run"}
           </button>

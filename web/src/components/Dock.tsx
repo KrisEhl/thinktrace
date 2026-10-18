@@ -63,6 +63,17 @@ function Cite({ id }: { id: string }) {
   );
 }
 
+const matchLabel = (c: { verified: boolean | null; match?: string; verified_against?: string }) =>
+  c.match === "fuzzy"
+    ? "quote found (near match)"
+    : c.match === "not_found" || c.verified === false
+      ? "quote NOT found in the source"
+      : c.verified_against === "snippet"
+        ? "quote found in the search snippet only"
+        : c.verified
+          ? "quote found verbatim"
+          : "checking…";
+
 /* ---------- Node ---------- */
 
 function NodePanel() {
@@ -94,8 +105,17 @@ function NodePanel() {
         {n.verdict && <span className="chip">verdict: {n.verdict}</span>}
         <span className="chip">{n.status}</span>
       </div>
+      {n.title && n.title !== n.label && <p>{n.title}</p>}
+      {n.why && (
+        <p className="muted">
+          <b>Why it was planned:</b> {n.why}
+        </p>
+      )}
+      {n.from_dir && <p className="muted">Replaces {run.nodes[n.from_dir]?.label ?? n.from_dir}, which you redirected.</p>}
+      {n.queries && n.queries.length > 0 && <p className="muted">First queries: {n.queries.map((q) => `“${q}”`).join(" · ")}</p>}
       {run.needs_human[id] && <div className="callout">⚠ Needs you: {run.needs_human[id]}</div>}
       {run.stop_reasons[id] && <p className="muted">Stopped: {run.stop_reasons[id]}</p>}
+      {n.budget_hit && <p className="muted">⏱ Hit its search/read budget.</p>}
 
       {n.kind !== "question" && (
         <div className="actions">
@@ -131,8 +151,14 @@ function NodePanel() {
             </div>
             <blockquote>“{c.quote}”</blockquote>
             <div className="muted">
-              {c.verified === false ? "quote not found in source" : c.verified ? "quote verified" : "checking…"} · {c.origin_ids.length} independent origin{c.origin_ids.length === 1 ? "" : "s"} · {src?.domain}
+              {matchLabel(c)} · {c.origin_ids.length} independent origin{c.origin_ids.length === 1 ? "" : "s"} · {src?.domain}
             </div>
+            {(c.links ?? []).map((l, i) => (
+              <div key={i} className={`muted link-${l.relation}`}>
+                {l.relation === "corroborates" ? "↔ corroborates" : "⚡ contradicts"} <Cite id={l.target} /> {l.by === "checker" ? "(fact-checker)" : "(agent)"}
+                {l.reason ? `: ${l.reason}` : ""}
+              </div>
+            ))}
             <div className={`use use-${u.state}`}>{u.state === "used" ? "● used in answer" : u.state === "pending" ? "○ answer pending" : `○ not used: ${u.reason}`}</div>
           </div>
         );
@@ -157,10 +183,14 @@ function AnswerPanel() {
   const unused = Object.values(run.claims).filter((c) => claimUsage(run, c).state === "unused");
   return (
     <div className="pad">
-      <h3>Answer</h3>
-      <p className="muted">Every sentence cites claim ids. Click one to see the quote and the source.</p>
+      <h3>Answer{run.answer_meta.version > 0 ? ` v${run.answer_meta.version}` : ""}</h3>
+      <p className="muted">
+        Every sentence cites claim ids. Click one to see the quote and the source.
+        {run.answer_meta.dropped.length > 0 && ` ${run.answer_meta.dropped.length} uncited sentence(s) were dropped.`}
+        {run.answer_meta.changed.length > 0 && ` Highlighted: changed since the previous version.`}
+      </p>
       {run.answer.map((s, i) => (
-        <p key={i} className={s.claim_ids.length === 0 ? "gap" : ""}>
+        <p key={i} className={`${s.claim_ids.length === 0 ? "gap" : ""} ${run.answer_meta.changed.some((c) => c.includes(s.text.slice(0, 40))) ? "changed" : ""}`}>
           {s.text} {s.claim_ids.map((c) => <Cite key={c} id={c} />)}
         </p>
       ))}
@@ -189,17 +219,24 @@ function SourceViewer() {
   const markRef = useRef<HTMLElement | null>(null);
 
   const local = target ? run.sources[target.source_id] : undefined;
+  const [loadErr, setLoadErr] = useState<string | null>(null);
   useEffect(() => {
     setFetched(null);
-    if (target && !local) transport.getSource(target.source_id).then(setFetched).catch(() => undefined);
-  }, [target?.source_id, local]); // eslint-disable-line react-hooks/exhaustive-deps
+    setLoadErr(null);
+    if (target && !local?.text)
+      transport
+        .getSource(target.source_id)
+        .then(setFetched)
+        .catch((e) => setLoadErr(String(e?.message ?? e)));
+  }, [target?.source_id, local?.text]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const src = local ?? fetched;
+  const src = local?.text ? local : fetched ? { ...local, ...fetched } : local;
   useEffect(() => {
     markRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [target?.claim_id, src?.id]);
 
   if (!target || !src) return <p className="muted pad">Click a citation or a source node to read the source with the quote highlighted.</p>;
+  const noText = !src.text;
 
   const claims = claimsOfSource(run, src.id);
   const spans = claims
@@ -234,7 +271,13 @@ function SourceViewer() {
         {sameOrigin.length > 0 && <> · counts as one with {sameOrigin.map((s) => s.domain).join(", ")} (echo)</>}
       </div>
       <div className={`use use-${usage.state}`}>{usage.state === "used" ? `● ${usage.used} claim(s) from here are used in the answer` : usage.state === "pending" ? "○ answer pending" : "○ nothing from this source is used in the answer"}</div>
-      <div className="srctext">{parts}</div>
+      {noText ? (
+        <div className="callout">
+          {loadErr ? `Could not load the page text: ${loadErr}` : fetched ? "The agent never read this page in full; quotes from it were checked against the search snippet only." : "Loading page text…"}
+        </div>
+      ) : (
+        <div className="srctext">{parts}</div>
+      )}
       {claims.length > 0 && <h4>Claims quoted from this source</h4>}
       {claims.map((c) => {
         const cited = answerSentencesCiting(run, c.id);

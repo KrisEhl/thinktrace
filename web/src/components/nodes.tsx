@@ -4,6 +4,7 @@ import { claimNumber, claimTone, claimUsage, nodeConfidence, nodeTone, notes, to
 import { gbSize } from "../graph/layout";
 
 const verdictGlyph = { yes: "✓", no: "✕", uncertain: "?" } as const;
+const stopGlyph = { enough_evidence: "✓", nothing_new: "∅", budget: "⏱", dropped_by_user: "✕", no_reason: "·" } as const;
 
 const centerHandle = { left: "50%", top: "50%", opacity: 0, pointerEvents: "none" as const, width: 1, height: 1 };
 
@@ -37,7 +38,11 @@ export function GbNode({ data }: NodeProps) {
       <Handle type="target" position={Position.Top} style={centerHandle} />
       <Handle type="source" position={Position.Top} style={centerHandle} />
       <div className="gb-inner">
-        {n.verdict && <span className="verdict">{verdictGlyph[n.verdict]}</span>}
+        {n.stop ? (
+          <span className="verdict" title={n.stop}>{stopGlyph[n.stop]}</span>
+        ) : (
+          n.verdict && <span className="verdict">{verdictGlyph[n.verdict]}</span>
+        )}
         {conf !== undefined && n.kind !== "question" && <span className="conf">{conf.toFixed(2)}</span>}
         {stale && <span className="spin" aria-label="re-running" />}
       </div>
@@ -129,7 +134,7 @@ export function ClaimNode({ data }: NodeProps) {
     <div className={`act claim tone-${tone} ${hl ? "hl" : ""} use-${usage.state}`} onClick={() => openClaim(c.id)}>
       {lanes}
       <div className="act-head">
-        [c{claimNumber(c.id)}] {c.verified === null ? "checking quote…" : c.verified ? "quote verified ✓" : "quote NOT found ✕"}
+        [c{claimNumber(c.id)}] {c.verified === null ? "checking quote…" : !c.verified ? "quote NOT found ✕" : c.match === "fuzzy" ? "near-match quote ≈" : c.verified_against === "snippet" ? "snippet quote ✓" : "quote verified ✓"}
       </div>
       <div className="act-q">{c.text}</div>
       <div className="act-why">

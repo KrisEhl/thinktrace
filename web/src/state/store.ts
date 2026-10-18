@@ -18,6 +18,7 @@ interface Ui {
   source: { source_id: string; claim_id?: string } | null;
   follow: boolean; // auto-fit the graph while it grows, until the user pans/zooms
   highlightClaim: string | null;
+  notice: string | null; // short message in the stats bar (e.g. why a steer was refused)
 }
 
 interface Actions {
@@ -77,6 +78,7 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       source: null,
       follow: true,
       highlightClaim: null,
+      notice: null,
       ...saved,
     },
 
@@ -84,19 +86,33 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
       unsub?.();
       set({ run: { ...emptyRun(), status: "running", question } });
       setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node" });
-      const { run_id } = await transport.createRun({ question, scenario });
-      attach(run_id);
+      try {
+        const { run_id } = await transport.createRun({ question, scenario });
+        set((s) => ({ run: { ...s.run, run_id } }));
+        attach(run_id);
+      } catch (err) {
+        set({ run: emptyRun() });
+        setUi({ notice: err instanceof Error ? err.message : String(err) });
+      }
     },
 
     async hydrate(run_id) {
-      set({ run: fromSnapshot(await transport.getGraph(run_id)) });
+      // The event stream replays from seq 0, so a fresh state plus a subscription rebuilds the whole run.
+      if (transport.getGraph) set({ run: fromSnapshot(await transport.getGraph(run_id)) });
+      else set({ run: { ...emptyRun(), status: "running", run_id } });
+      setUi({ focusId: "q", selectedId: null, openNotes: {}, source: null, follow: true, dockTab: "node" });
       attach(run_id);
     },
 
     async steer(action, opts = {}) {
       const run_id = get().run.run_id;
       if (!run_id) return;
-      await transport.steer(run_id, { action, ...opts });
+      try {
+        await transport.steer(run_id, { action, ...opts });
+        setUi({ notice: null });
+      } catch (err) {
+        setUi({ notice: err instanceof Error ? err.message : String(err) });
+      }
     },
 
     async ask(text) {

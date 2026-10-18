@@ -74,39 +74,57 @@ function activity(st: RunState, focusId: string): LayerResult {
 
   const decisions = decisionsOfNode(st, focusId);
   const claims = claimsOfNode(st, focusId);
-  const srcIds = [...new Set(claims.map((c) => c.source_id))];
-  // A decision "produced" a source if it names it; otherwise match the k-th search/read decision with the k-th source
-  // (spike heuristic; the backend should set Decision.source_id so this becomes exact).
+  // Show the sources that matter here: those with claims, plus those the agent chose to read.
+  const srcIds = [...new Set([...claims.map((c) => c.source_id), ...decisions.filter((d) => d.action === "read" && d.source_id).map((d) => d.source_id!)])].filter(
+    (sid) => st.sources[sid],
+  );
+  // Which decision brought a source in: the read that named it, else the first search that returned it,
+  // else (mock data without results) the k-th search/read decision.
   const working = decisions.map((d, i) => ({ d, i })).filter(({ d }) => d.action !== "stop");
-  const rowOfSource: Record<string, number> = {};
-  const producer: Record<string, string> = {};
-  srcIds.forEach((sid, k) => {
-    const named = decisions.findIndex((d) => d.source_id === sid);
-    const idx = named >= 0 ? named : working[k]?.i ?? decisions.length + k;
-    rowOfSource[sid] = idx;
-    if (decisions[idx]) producer[sid] = decisions[idx].id;
-  });
+  const producerIdx = (sid: string, k: number) => {
+    const read = decisions.findIndex((d) => d.action === "read" && d.source_id === sid);
+    const search = decisions.findIndex((d) => d.action === "search" && d.results?.includes(sid));
+    if (search >= 0 && (read < 0 || search < read)) return search;
+    if (read >= 0) return read;
+    return decisions.some((d) => d.results) ? -1 : (working[k]?.i ?? -1);
+  };
 
   decisions.forEach((d, i) => {
     nodes.push({ id: `dec:${d.id}`, type: "decision", position: { x: COL.decision, y: i * ROW }, data: { id: d.id } });
     edges.push(edge(`e-dec-${i}`, i === 0 ? focusId : `dec:${decisions[i - 1].id}`, `dec:${d.id}`, { className: "chain" }));
   });
 
-  const claimIdx: Record<string, number> = {};
-  srcIds.forEach((sid) => {
-    nodes.push({ id: `src:${sid}`, type: "source", position: { x: COL.source, y: rowOfSource[sid] * ROW }, data: { id: sid } });
-    if (producer[sid]) edges.push(edge(`e-ds-${sid}`, `dec:${producer[sid]}`, `src:${sid}`));
+  // Rows: each source sits at its producer's row or the next free slot below; claims likewise next to their source.
+  const rowOfSource: Record<string, number> = {};
+  let nextSrc = 0;
+  const ordered = srcIds.map((sid, k) => ({ sid, p: producerIdx(sid, k) })).sort((a, b) => (a.p < 0 ? 1e9 : a.p) - (b.p < 0 ? 1e9 : b.p));
+  ordered.forEach(({ sid, p }) => {
+    const want = p >= 0 ? p * ROW : nextSrc;
+    const y = Math.max(want, nextSrc);
+    rowOfSource[sid] = y;
+    nextSrc = y + 92;
+    nodes.push({ id: `src:${sid}`, type: "source", position: { x: COL.source, y }, data: { id: sid } });
+    const search = decisions.filter((d) => d.action === "search" && d.results?.includes(sid)).slice(0, 1);
+    const reads = decisions.filter((d) => d.action === "read" && d.source_id === sid);
+    for (const d of [...search, ...reads]) edges.push(edge(`e-ds-${d.id}-${sid}`, `dec:${d.id}`, `src:${sid}`, { className: d.action === "read" ? "read" : "" }));
+    if (!search.length && !reads.length && p >= 0) edges.push(edge(`e-ds-${sid}`, `dec:${decisions[p].id}`, `src:${sid}`));
   });
-  claims.forEach((c) => {
-    const k = (claimIdx[c.source_id] = (claimIdx[c.source_id] ?? -1) + 1);
-    nodes.push({
-      id: `clm:${c.id}`,
-      type: "claim",
-      position: { x: COL.claim, y: rowOfSource[c.source_id] * ROW + k * 96 },
-      data: { id: c.id },
-    });
-    edges.push(edge(`e-sc-${c.id}`, `src:${c.source_id}`, `clm:${c.id}`));
+
+  let nextClaim = 0;
+  const bySource = [...claims].sort((a, b) => (rowOfSource[a.source_id] ?? 0) - (rowOfSource[b.source_id] ?? 0));
+  bySource.forEach((c) => {
+    const y = Math.max(rowOfSource[c.source_id] ?? 0, nextClaim);
+    nextClaim = y + 100;
+    nodes.push({ id: `clm:${c.id}`, type: "claim", position: { x: COL.claim, y }, data: { id: c.id } });
+    if (rowOfSource[c.source_id] !== undefined) edges.push(edge(`e-sc-${c.id}`, `src:${c.source_id}`, `clm:${c.id}`));
   });
+  // Corroborate / contradict links between claims of this direction.
+  const here = new Set(claims.map((c) => c.id));
+  claims.forEach((c) =>
+    (c.links ?? []).forEach((l, i) => {
+      if (here.has(l.target)) edges.push(edge(`e-cl-${c.id}-${i}`, `clm:${c.id}`, `clm:${l.target}`, { className: l.relation }));
+    }),
+  );
   // Follow-up branches grown from this direction sit to the right and can be drilled into.
   children(st, focusId).forEach((k, i) => {
     const ks = gbSize(k);

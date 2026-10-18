@@ -1,5 +1,5 @@
-// Wire types shared by the mock and the real backend. Event names follow Glassbox spec section "Events".
-// Payload shapes are the frontend's proposal: backend should match them (or tell us what differs).
+// UI-side event model. The mock speaks it natively; the real backend's envelope events
+// (docs/agent-and-event-logging.md section 4) are translated into it by api/glassbox.ts.
 
 export type NodeKind = "question" | "dimension" | "direction";
 export type NodeStatus = "idle" | "running" | "done" | "deactivated" | "stale";
@@ -15,7 +15,18 @@ export interface GraphNode {
   confidence?: number; // 0..1, backend-computed (deterministic rule in spec)
   needs_human?: boolean;
   traffic: number; // searches + reads
+  /** Real backend: full direction title, the plan's reason, and its first queries. */
+  title?: string;
+  why?: string;
+  queries?: string[];
+  /** Real backend stop reason, drives the stop badge. */
+  stop?: StopReason;
+  budget_hit?: boolean;
+  /** Redirect: the dropped direction this one replaced. */
+  from_dir?: string;
 }
+
+export type StopReason = "enough_evidence" | "nothing_new" | "budget" | "dropped_by_user" | "no_reason";
 
 export interface Assumption {
   id: string;
@@ -43,6 +54,17 @@ export interface Claim {
   verified: boolean | null; // null = not checked yet
   confidence: number;
   origin_ids: string[]; // independent origins backing this claim
+  /** Real backend: how the quote was found ("snippet" = only checked against a search snippet, no span). */
+  match?: "exact" | "fuzzy" | "not_found";
+  verified_against?: "full_text" | "snippet";
+  links?: ClaimLink[];
+}
+
+export interface ClaimLink {
+  relation: "corroborates" | "contradicts";
+  target: string;
+  by: "agent" | "checker";
+  reason?: string;
 }
 
 export interface Decision {
@@ -52,6 +74,10 @@ export interface Decision {
   why: string;
   query?: string;
   source_id?: string;
+  /** Search decisions: the sources the search returned. */
+  results?: string[];
+  /** The model's reflection text from `think`, when it gave one. */
+  reflection?: string;
   ts: number;
 }
 
@@ -107,10 +133,11 @@ export type GlassboxEvent =
   | { type: "stale_marked"; node_ids: string[] }
   | { type: "needs_human"; node_id: string; reason: string }
   | { type: "message"; message: Message }
-  | { type: "answer_updated"; answer: AnswerSentence[] }
+  | { type: "answer_updated"; answer: AnswerSentence[]; version?: number; changed?: string[]; dropped?: string[] }
+  | { type: "node_patch"; node_id: string; patch: Partial<GraphNode> }
   | { type: "cost_updated"; cost: Cost };
 
-export type SteerAction = "deactivate" | "dig_deeper" | "fix" | "accept" | "chat";
+export type SteerAction = "deactivate" | "redirect" | "dig_deeper" | "fix" | "accept" | "chat";
 
 export interface SteerRequest {
   action: SteerAction;
@@ -136,11 +163,20 @@ export interface Transport {
   createRun(req: CreateRunRequest): Promise<{ run_id: string }>;
   /** Live events for a run. Returns an unsubscribe function. */
   subscribe(run_id: string, onEvent: (e: GlassboxEvent) => void, onClose?: () => void): () => void;
-  getGraph(run_id: string): Promise<GraphSnapshot>;
+  getGraph?(run_id: string): Promise<GraphSnapshot>;
   steer(run_id: string, req: SteerRequest): Promise<void>;
   getSource(source_id: string): Promise<Source>;
-  health(): Promise<{ ok: boolean; models?: string[]; tavily?: boolean }>;
+  health(): Promise<{ ok: boolean; models?: string[]; tavily?: boolean; mode?: string }>;
+  /** Runs the backend knows about (live and recorded). */
+  listRuns?(): Promise<RunInfo[]>;
   /** Present on the mock only. */
   simulate?(op: SimOp, node_id?: string, text?: string): void;
   scenarios?: { id: string; label: string; question: string }[];
+}
+
+export interface RunInfo {
+  run_id: string;
+  question: string;
+  status: string;
+  started_at?: string;
 }

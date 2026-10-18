@@ -3,7 +3,7 @@ import { decisionsOfNode } from "../state/selectors";
 
 export function StatsBar() {
   const run = useStore((s) => s.run);
-  const { railOpen, dockOpen, traceOpen } = useStore((s) => s.ui);
+  const { railOpen, dockOpen, traceOpen, notice } = useStore((s) => s.ui);
   const { set } = useStore.getState();
   const sources = Math.max(Object.keys(run.sources).length, run.cost.sources);
   const nodes = Object.values(run.nodes);
@@ -17,6 +17,11 @@ export function StatsBar() {
       </span>
       {needs > 0 && <span className="chip warn">{needs} need you</span>}
       {nodes.some((n) => n.status === "stale") && <span className="chip warn">{nodes.filter((n) => n.status === "stale").length} of {nodes.filter((n) => n.kind === "direction").length} directions re-running</span>}
+      {notice && (
+        <span className="chip warn notice" title={notice} onClick={() => set({ notice: null })}>
+          {notice.slice(0, 90)} ✕
+        </span>
+      )}
       <span className="spacer" />
       <button onClick={() => set({ railOpen: !railOpen })} className={railOpen ? "on" : ""}>Chat</button>
       <button onClick={() => set({ traceOpen: !traceOpen })} className={traceOpen ? "on" : ""}>Trace</button>
