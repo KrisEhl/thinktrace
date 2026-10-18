@@ -161,15 +161,16 @@ def events_jsonl(run_id: str):
 
 
 @app.post("/runs/{run_id}/close")
-def close(run_id: str) -> dict:
+async def close(run_id: str) -> dict:
     if run_id not in live:
         raise HTTPException(409, "run is not live")
     close_now.add(run_id)
     return {"ok": True}
 
 
+# async: steering spawns researcher tasks, which must run on the server's event loop (not a worker thread).
 @app.post("/runs/{run_id}/steer")
-def steer(run_id: str, body: Steer) -> dict:
+async def steer(run_id: str, body: Steer) -> dict:
     run = live.get(run_id)
     if not run:
         raise HTTPException(409, "This run is not live (recorded or finished), so it cannot be steered.")

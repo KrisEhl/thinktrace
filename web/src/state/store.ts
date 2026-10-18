@@ -124,7 +124,19 @@ export const useStore = create<{ run: RunState; ui: Ui } & Actions>((set, get) =
     async ask(text) {
       // A follow-up pins to the selected node and grows from it (decided in brainstorming).
       const node_id = get().ui.selectedId ?? "q";
-      await get().steer("chat", { node_id, text });
+      const run_id = get().run.run_id;
+      try {
+        if (!run_id) throw new Error("not live");
+        await transport.steer(run_id, { action: "chat", node_id, text });
+        setUi({ notice: null });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        // The run is over (recorded, finished or the server restarted): ask it as a new run instead of failing quietly.
+        if (/not live/i.test(msg)) {
+          await get().start(text);
+          setUi({ notice: "That run was no longer live, so your question started a new run." });
+        } else setUi({ notice: msg });
+      }
     },
 
     select(id) {
